@@ -1,0 +1,37 @@
+{
+    "name": "workhorse-art-shop",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "dev": "concurrently \"npm:dev:client\" \"npm:dev:server\"",
+        "dev:client": "vite",
+        "dev:server": "node server.js",
+        "build": "vite build",
+        "preview": "vite preview",
+        "start": "node server.js",
+        "generate:drawings-thumbs": "\"C:\\Users\\Eneo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe\" scripts/generate_thumbnails.py public/products/drawings"
+    },
+    "dependencies": {
+        "@stripe/react-stripe-js": "^6.3.0",
+        "@stripe/stripe-js": "^9.5.0",
+        "dotenv": "^16.6.1",
+        "express": "^5.1.0",
+        "framer-motion": "^12.9.4",
+        "lucide-react": "^0.511.0",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "stripe": "^18.5.0"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.5.0",
+        "autoprefixer": "^10.4.21",
+        "concurrently": "^9.2.1",
+        "postcss": "^8.5.3",
+        "tailwindcss": "^3.4.17",
+        "vite": "^6.3.5"
+    }
+}
