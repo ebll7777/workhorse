@@ -1250,6 +1250,10 @@ function OrderSuccessPage({ onContinueShopping }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    document.title = "Jonathan Jaffrey";
+  }, []);
+
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
