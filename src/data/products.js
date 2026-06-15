@@ -17,6 +17,14 @@ const filenameToTitle = (filename) =>
 
 const thumbFilename = (filename) => `${filename.replace(/\.[^/.]+$/, "")}.webp`;
 
+const defaultDrawingDetails = ["Pen on Paper", "21cm x 30cm"];
+
+const drawingDetailOverrides = {
+  "F-Word.png": ["Acrylic on Paper", "21cm x 30cm"],
+  "Get Out of My Head.jpg": ["Marker and Pen on Paper", "21cm x 30cm"],
+  "Venice Beach.jpg": ["Pencil and Pen on Paper", "42cm x 30cm"],
+};
+
 const drawingFiles = [
   "Alarm clock.png",
   "BAT.png",
@@ -96,7 +104,8 @@ const drawingProducts = drawingFiles.map((filename, index) => ({
   price: 180,
   image: productAsset("Drawings", `full/${thumbFilename(filename)}`),
   thumbnail: productAsset("Drawings", `thumbs/${thumbFilename(filename)}`),
-  description: "Replace this with your drawing details.",
+  details: drawingDetailOverrides[filename] ?? defaultDrawingDetails,
+  description: (drawingDetailOverrides[filename] ?? defaultDrawingDetails).join(". "),
 }));
 
 export const products = [
@@ -126,8 +135,8 @@ export const products = [
     category: "Paintings",
     price: 320,
     image: productAsset("Paintings", "February First.png"),
-    description:
-      "Placeholder painting listing with room for medium, size, year, and framing information.",
+    details: ["Acrylic on Canvas", "30cm x 40cm"],
+    description: "Acrylic on Canvas. 30cm x 40cm.",
   },
   {
     id: 4,
@@ -136,7 +145,8 @@ export const products = [
     category: "Paintings",
     price: 540,
     image: productAsset("Paintings", "Kwain The Unthinkable.png"),
-    description: "A monochrome painting placeholder for your featured works.",
+    details: ["Acrylic on Canvas", "30cm x 40cm"],
+    description: "Acrylic on Canvas. 30cm x 40cm.",
   },
   {
     id: 5,
