@@ -102,7 +102,7 @@ function validateCheckoutDetails(checkoutDetails) {
   }
 
   if (!checkoutDetails.streetNumber) {
-    return "Enter the shipping street number.";
+    return "Enter the shipping house number.";
   }
 
   if (!checkoutDetails.country) {
@@ -545,7 +545,7 @@ app.post("/api/auth/signup", async (req, res) => {
     }
 
     if (!address.streetNumber) {
-      return res.status(400).json({ error: "Enter the shipping street number for this account." });
+      return res.status(400).json({ error: "Enter the shipping house number for this account." });
     }
 
     const store = await readAuthStore();

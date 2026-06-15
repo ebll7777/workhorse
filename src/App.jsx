@@ -1056,7 +1056,7 @@ function CheckoutPage({
                   />
                 </label>
                 <label className="block space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em]">Street Number</span>
+                  <span className="text-[11px] uppercase tracking-[0.2em]">House Number</span>
                   <input
                     type="text"
                     value={checkoutDetails.streetNumber}
@@ -1735,7 +1735,7 @@ export default function App() {
       }
 
       if (!authForm.streetNumber.trim()) {
-        setAuthState((prev) => ({ ...prev, error: "Enter the shipping street number for this account." }));
+        setAuthState((prev) => ({ ...prev, error: "Enter the shipping house number for this account." }));
         return;
       }
     } else if (!email || !password) {
@@ -1903,7 +1903,7 @@ export default function App() {
     if (!details.streetNumber) {
       setCheckoutState({
         loading: false,
-        error: "Enter the shipping street number.",
+        error: "Enter the shipping house number.",
       });
       return false;
     }
