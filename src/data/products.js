@@ -211,5 +211,16 @@ export const products = [
     image: productAsset("Paintings", "PT-05.jpg"),
     description: "Replace this with your fifth painting details.",
   },
+  {
+    id: 6,
+    code: "PT-06",
+    title: "The Tourist",
+    category: "Paintings",
+    price: 460,
+    image: productAsset("Paintings", "The Tourist.webp"),
+    thumbnail: productAsset("Paintings", "thumbs/The Tourist.webp"),
+    details: ["160cm x 36cm", "Oil, Acrylic on canvas"],
+    description: "Oil, Acrylic on canvas. 160cm x 36cm.",
+  },
   ...drawingProducts,
 ];

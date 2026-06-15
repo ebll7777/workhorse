@@ -710,6 +710,9 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   };
 
   const isShopProduct = product.category === "Stickers";
+  const detailLines = product.details?.length
+    ? product.details
+    : ["Customize this field", "Customize this field"];
 
   const handleAddToCart = () => {
     onAddToCart(product, purchaseQuantity);
@@ -805,12 +808,11 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                     </div>
                   </div>
                 ) : null}
-                <div className="flex justify-center py-3">
-                  <span>Customize this field</span>
-                </div>
-                <div className="flex justify-center py-3">
-                  <span>Customize this field</span>
-                </div>
+                {detailLines.map((detail, index) => (
+                  <div key={`${detail}-${index}`} className="flex justify-center py-3">
+                    <span>{detail}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
