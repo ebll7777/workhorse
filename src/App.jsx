@@ -2389,13 +2389,19 @@ export default function App() {
                 <div className="max-w-3xl space-y-10">
                   <p className="text-[11px] uppercase tracking-[0.24em]">About</p>
                   <div className="space-y-6">
-                    <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-5xl">Workhorse</h1>
+                    <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
                     <div className="space-y-5 text-sm leading-7 text-black/75">
                       <p>
-                        Replace this placeholder with your studio story. This area is intentionally sparse and direct so the writing carries the identity.
+                        Feet dangling off the chair scribbling at his tiny desk, sketching drawings on the side of notebooks distracted in class, creating novels with pen, brushes, and on screen, from lived to fiction. For Jon Jaff, drawing has always been part of his life. It started from a young age. His dad told him stories, sketching characters that remained with him to this day. Jon took what was a natural born hobby and used it as a tool to express experiences, cultures, and characters, all from a truthfully raw point of view.
                       </p>
                       <p>
-                        You can add your process, materials, influences, and the philosophy behind your stickers, paintings, drawings, and furniture.
+                        Born in San Diego, and raised in Bakersfield, California, he spent the majority of his life under the sun, finding every moment he could to escape to the beach. After graduating high school, Jon made his way back to San Diego to begin his college education. From there, he moved to Los Angeles to finish his bachelor's degree in English at UCLA. In his time in LA, he reflected on his past, the city's nature, and the characters surrounding him, and found his way back to art through sketches based on his lived reality. These were the first several chapters of Swim, a fictional graphic short novel (loosely an autobiography). From this point forward, he chose to reflect reality as both purely honest and entirely imagined; mixing art styles from unhinged and abstract, to precisely detailed pen work. All while nodding to his inner child who once began the same journey.
+                      </p>
+                      <p>
+                        Jon Jaff works on many different mediums: painting on canvas, creating digital art, sketching with pencil or markers, film and edit, and all of the above simultaneously. Because why not. With that same mindset, Jon approaches every craft with a ruthless sense of will. Nothing stays unexplored. His collection varies in style, shape, and form, keeping every door cracked and every perspective explored. You should never feel as though you are limited in what you can express and how you choose to do so.
+                      </p>
+                      <p>
+                        The artist now resides in Berlin, Germany exploring entirely new mediums, different cultures, and various perspectives yet to be illustrated. His newest collection, The Tourist, features a series of original characters adding to the universe he creates with his art. And there's much more left to see, and many more stories to tell.
                       </p>
                     </div>
                   </div>
