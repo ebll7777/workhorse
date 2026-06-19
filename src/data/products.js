@@ -155,6 +155,52 @@ export const products = [
     category: "Furniture",
     price: 580,
     image: productAsset("Furniture", "dance.gif"),
+    media: [
+      {
+        src: productAsset("Furniture", "dance.gif"),
+        label: "Animated preview",
+      },
+      {
+        src: productAsset("Furniture", "Dresser As A Whole.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser As A Whole.webp"),
+        label: "As a whole",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Perfect 2.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Perfect 2.webp"),
+        label: "Perfect 2",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Perfect.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Perfect.webp"),
+        label: "Perfect",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Front.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Front.webp"),
+        label: "Front of dresser",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Front Left Side.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Front Left Side.webp"),
+        label: "Dresser front left side",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Front Right Side.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Front Right Side.webp"),
+        label: "Dresser front right side",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Side.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Side.webp"),
+        label: "Side of the dresser",
+      },
+      {
+        src: productAsset("Furniture", "Dresser Side Final.webp"),
+        thumbnail: productAsset("Furniture", "thumbs/Dresser Side Final.webp"),
+        label: "SIDE OF THE DRESSER FINAL",
+      },
+    ],
     description:
       "Placeholder furniture piece. Replace with dimensions, materials, finish, and lead time.",
   },

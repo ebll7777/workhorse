@@ -641,14 +641,28 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   if (!product) return null;
 
   const [imageSrc, setImageSrc] = useState(product.image);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isZoomActive, setIsZoomActive] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
   const zoomTargetRef = useRef({ x: 50, y: 50 });
   const zoomFrameRef = useRef(null);
+  const mediaItems = product.media?.length
+    ? product.media
+    : [
+        {
+          src: product.image,
+          thumbnail: product.thumbnail,
+          fallbackSrc: product.fallbackImage,
+          label: product.title,
+        },
+      ];
+  const activeMediaIndex = Math.min(selectedMediaIndex, mediaItems.length - 1);
+  const activeMedia = mediaItems[activeMediaIndex] ?? mediaItems[0];
 
   useEffect(() => {
-    setImageSrc(product.image);
+    setSelectedMediaIndex(0);
+    setImageSrc(product.media?.[0]?.src ?? product.image);
     setIsZoomActive(false);
     setZoomPosition({ x: 50, y: 50 });
     setPurchaseQuantity(1);
@@ -709,6 +723,16 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
     setZoomPosition({ x: 50, y: 50 });
   };
 
+  const handleMediaSelect = (index) => {
+    const nextMedia = mediaItems[index];
+
+    if (!nextMedia) return;
+
+    setSelectedMediaIndex(index);
+    setImageSrc(nextMedia.src);
+    handleZoomLeave();
+  };
+
   const isShopProduct = product.category === "Stickers";
   const detailLines = product.details?.length
     ? product.details
@@ -738,7 +762,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
       </button>
       <div className="grid min-h-[calc(100vh-97px)] grid-cols-1">
         <div className="bg-white">
-          <div className="flex h-full items-center justify-center px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
+          <div className="flex h-full flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
             <div
               className={`relative mx-auto flex h-full w-full max-w-[32rem] items-center justify-center overflow-hidden bg-white sm:max-w-[38rem] lg:max-w-[44rem] ${
                 isZoomActive ? "cursor-grab" : "cursor-zoom-in"
@@ -749,7 +773,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
             >
               <img
                 src={imageSrc}
-                alt={product.title}
+                alt={activeMedia?.label || product.title}
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
@@ -761,12 +785,32 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                   willChange: "transform",
                 }}
                 onError={() => {
-                  if (product.fallbackImage && imageSrc !== product.fallbackImage) {
-                    setImageSrc(product.fallbackImage);
+                  const fallbackSrc = activeMedia?.fallbackSrc || product.fallbackImage;
+
+                  if (fallbackSrc && imageSrc !== fallbackSrc) {
+                    setImageSrc(fallbackSrc);
                   }
                 }}
               />
             </div>
+
+            {mediaItems.length > 1 ? (
+              <div className="mt-5 flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] text-black/55">
+                {mediaItems.map((media, index) => (
+                  <button
+                    key={`${media.src}-${index}`}
+                    type="button"
+                    onClick={() => handleMediaSelect(index)}
+                    aria-label={`View ${media.label || `media ${index + 1}`}`}
+                    aria-current={index === activeMediaIndex ? "true" : undefined}
+                    className={`h-2.5 w-2.5 rounded-full border border-black transition ${
+                      index === activeMediaIndex ? "bg-black" : "bg-white hover:bg-black/20"
+                    }`}
+                  />
+                ))}
+                <span className="ml-2">{activeMediaIndex + 1}/{mediaItems.length}</span>
+              </div>
+            ) : null}
           </div>
         </div>
 
