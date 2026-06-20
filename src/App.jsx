@@ -2454,41 +2454,18 @@ export default function App() {
 
                   <div className="space-y-3">
                     <h2 className="workhorse-serif text-2xl tracking-[0.06em] sm:text-3xl">Contact</h2>
-                    <div className="space-y-1 text-[11px] uppercase tracking-[0.2em]">
+                    <div className="space-y-1 text-[11px] tracking-[0.2em]">
                       <a
-                        href="mailto:hello@workhorse.studio"
+                        href="mailto:Jonjaff623@gmail.com"
                         className="flex items-center justify-between border-b border-black py-4 hover:opacity-50"
                       >
-                        <span>Email</span>
-                        <span className="text-black/60">hello@workhorse.studio</span>
+                        <span className="uppercase">Email</span>
+                        <span className="text-black/60">Jonjaff623@gmail.com</span>
                       </a>
-                      <a
-                        href="https://www.instagram.com/jonjaff/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between border-b border-black py-4 hover:opacity-50"
-                      >
-                        <span>Instagram</span>
-                        <span className="text-black/60">@jonjaff</span>
-                      </a>
-                      <a
-                        href="https://www.tiktok.com/@jonjaff"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between border-b border-black py-4 hover:opacity-50"
-                      >
-                        <span>TikTok</span>
-                        <span className="text-black/60">@jonjaff</span>
-                      </a>
-                      <a
-                        href="https://www.youtube.com/@jonjaff"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between border-b border-black py-4 hover:opacity-50"
-                      >
-                        <span>YouTube</span>
-                        <span className="text-black/60">@jonjaff</span>
-                      </a>
+                      <div className="flex items-center justify-between border-b border-black py-4 uppercase">
+                        <span>Socials</span>
+                        <span className="text-black/60">@JONJAFF</span>
+                      </div>
                     </div>
                   </div>
                 </div>
