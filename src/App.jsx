@@ -744,12 +744,12 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   };
 
   return (
-    <section className="relative min-h-[calc(100vh-97px)] bg-white">
+    <section className="relative min-h-[calc(100svh-92px)] bg-white sm:min-h-[calc(100vh-97px)]">
       <button
         type="button"
         onClick={onPrevious}
         aria-label="View previous item"
-        className="fixed left-3 top-[calc(50%-64px)] z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-transparent text-black transition hover:opacity-50 sm:left-5 sm:h-10 sm:w-10"
+        className="fixed left-1 top-[38svh] z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-transparent text-black transition hover:opacity-50 sm:left-5 sm:top-[calc(50%-64px)] sm:h-10 sm:w-10"
       >
         <span aria-hidden="true" className="text-2xl leading-none">{"<"}</span>
       </button>
@@ -757,13 +757,13 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
         type="button"
         onClick={onNext}
         aria-label="View next item"
-        className="fixed right-3 top-[calc(50%-64px)] z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-transparent text-black transition hover:opacity-50 sm:right-5 sm:h-10 sm:w-10"
+        className="fixed right-1 top-[38svh] z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-transparent text-black transition hover:opacity-50 sm:right-5 sm:top-[calc(50%-64px)] sm:h-10 sm:w-10"
       >
         <span aria-hidden="true" className="text-2xl leading-none">{">"}</span>
       </button>
-      <div className="grid min-h-[calc(100vh-97px)] grid-cols-1">
+      <div className="grid min-h-[calc(100svh-92px)] grid-cols-1 sm:min-h-[calc(100vh-97px)]">
         <div className="bg-white">
-          <div className="flex h-full flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
+          <div className="flex h-full flex-col items-center justify-center px-10 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
             <div
               className={`relative mx-auto flex h-full w-full max-w-[32rem] items-center justify-center overflow-hidden bg-white sm:max-w-[38rem] lg:max-w-[44rem] ${
                 isZoomActive ? "cursor-grab" : "cursor-zoom-in"
@@ -778,7 +778,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
-                className="max-h-[52vh] w-full object-contain sm:max-h-[56vh] lg:max-h-[60vh]"
+                className="max-h-[38svh] w-full object-contain sm:max-h-[56vh] lg:max-h-[60vh]"
                 style={{
                   transform: isZoomActive ? "scale(2.35)" : "scale(1)",
                   transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
@@ -796,7 +796,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
             </div>
 
             {mediaItems.length > 1 ? (
-              <div className="mt-5 flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] text-black/55">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-2 text-[10px] uppercase tracking-[0.18em] text-black/55 sm:mt-5">
                 {mediaItems.map((media, index) => (
                   <button
                     key={`${media.src}-${index}`}
@@ -816,15 +816,15 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
         </div>
 
         <div className="flex min-h-full flex-col justify-between bg-white">
-          <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-            <div className="mx-auto mb-10 w-full max-w-2xl space-y-6 text-center">
-              <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-5xl">
+          <div className="mx-auto w-full max-w-6xl px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+            <div className="mx-auto mb-8 w-full max-w-2xl space-y-4 text-center sm:mb-10 sm:space-y-6">
+              <h1 className="workhorse-serif text-3xl tracking-[0.08em] sm:text-5xl">
                 {product.title}
               </h1>
 
-              <div className="pt-6 text-[11px] uppercase tracking-[0.18em] text-black/65">
+              <div className="pt-3 text-[11px] uppercase tracking-[0.18em] text-black/65 sm:pt-6">
                 {isShopProduct ? (
-                  <div className="mx-auto flex w-full max-w-xl items-center justify-center gap-6 pb-3">
+                  <div className="mx-auto flex w-full max-w-xl flex-col items-center justify-center gap-3 pb-3 min-[380px]:flex-row min-[380px]:gap-6">
                     <button
                       type="button"
                       onClick={handleAddToCart}
@@ -854,8 +854,8 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                   </div>
                 ) : null}
                 {detailLines.map((detail, index) => (
-                  <div key={`${detail}-${index}`} className="flex justify-center py-3">
-                    <span>{detail}</span>
+                  <div key={`${detail}-${index}`} className="flex justify-center py-2 sm:py-3">
+                    <span className="break-words px-2">{detail}</span>
                   </div>
                 ))}
               </div>
@@ -1018,17 +1018,21 @@ function CheckoutPage({
   onStripePayment,
 }) {
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const fieldLabelClass = "text-[10px] uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.2em]";
+  const fieldClass =
+    "min-h-12 w-full min-w-0 border border-black px-3 py-3 text-base outline-none sm:px-4 sm:py-4 sm:text-sm";
+  const selectClass = `workhorse-sans bg-white ${fieldClass}`;
 
   return (
-    <section className="min-h-[calc(100vh-97px)] bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_0.9fr] lg:gap-16">
-          <div className="pt-5">
-            <div className="mb-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
+    <section className="min-h-[calc(100svh-92px)] bg-white sm:min-h-[calc(100vh-97px)]">
+      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
+        <div className="grid grid-cols-1 gap-9 lg:grid-cols-[1fr_0.9fr] lg:gap-16">
+          <div className="pt-2 sm:pt-5">
+            <div className="mb-6 grid w-full max-w-xl grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:mb-8">
               <button
                 type="button"
                 onClick={() => onPaymentMethodChange("stripe")}
-                className={`border px-4 py-4 text-[11px] uppercase tracking-[0.2em] transition ${
+                className={`border px-3 py-3 text-[11px] uppercase tracking-[0.18em] transition sm:px-4 sm:py-4 sm:tracking-[0.2em] ${
                   paymentMethod === "stripe" ? "border-black bg-black text-white" : "border-black bg-white text-black hover:opacity-70"
                 }`}
               >
@@ -1037,7 +1041,7 @@ function CheckoutPage({
               <button
                 type="button"
                 onClick={() => onPaymentMethodChange("paypal")}
-                className={`border px-4 py-4 text-[11px] uppercase tracking-[0.2em] transition ${
+                className={`border px-3 py-3 text-[11px] uppercase tracking-[0.18em] transition sm:px-4 sm:py-4 sm:tracking-[0.2em] ${
                   paymentMethod === "paypal" ? "border-black bg-black text-white" : "border-black bg-white text-black hover:opacity-70"
                 }`}
               >
@@ -1045,77 +1049,77 @@ function CheckoutPage({
               </button>
             </div>
 
-            <div className="max-w-xl space-y-8">
+            <div className="w-full max-w-xl space-y-7 sm:space-y-8">
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.2em]">Contact Information</p>
+                <p className={fieldLabelClass}>Contact Information</p>
                 <label className="block space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em]">Email Address</span>
+                  <span className={fieldLabelClass}>Email Address</span>
                   <input
                     type="email"
                     value={checkoutDetails.email}
                     onChange={(event) => onCheckoutFieldChange("email", event.target.value)}
-                    className="w-full border border-black px-4 py-4 text-sm outline-none"
+                    className={fieldClass}
                   />
                 </label>
-                <label className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-black/70">
+                <label className="flex items-start gap-3 text-[10px] uppercase tracking-[0.14em] text-black/70 sm:items-center sm:text-[11px] sm:tracking-[0.18em]">
                   <input
                     type="checkbox"
                     checked={subscribeToUpdates}
                     onChange={(event) => onSubscribeChange(event.target.checked)}
-                    className="h-4 w-4 rounded-none border border-black accent-black"
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded-none border border-black accent-black sm:mt-0"
                   />
                   <span>Subscribe to updates and notifications</span>
                 </label>
               </div>
 
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.2em]">Shipping Address</p>
+                <p className={fieldLabelClass}>Shipping Address</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">First Name</span>
+                    <span className={fieldLabelClass}>First Name</span>
                     <input
                       type="text"
                       value={checkoutDetails.firstName}
                       onChange={(event) => onCheckoutFieldChange("firstName", event.target.value)}
-                      className="w-full border border-black px-4 py-4 text-sm outline-none"
+                      className={fieldClass}
                     />
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">Last Name</span>
+                    <span className={fieldLabelClass}>Last Name</span>
                     <input
                       type="text"
                       value={checkoutDetails.lastName}
                       onChange={(event) => onCheckoutFieldChange("lastName", event.target.value)}
-                      className="w-full border border-black px-4 py-4 text-sm outline-none"
+                      className={fieldClass}
                     />
                   </label>
                 </div>
                 <label className="block space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em]">Street</span>
+                  <span className={fieldLabelClass}>Street</span>
                   <input
                     type="text"
                     value={checkoutDetails.street}
                     onChange={(event) => onCheckoutFieldChange("street", event.target.value)}
                     autoComplete="street-address"
-                    className="w-full border border-black px-4 py-4 text-sm outline-none"
+                    className={fieldClass}
                   />
                 </label>
                 <label className="block space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em]">House Number</span>
+                  <span className={fieldLabelClass}>House Number</span>
                   <input
                     type="text"
                     value={checkoutDetails.streetNumber}
                     onChange={(event) => onCheckoutFieldChange("streetNumber", event.target.value)}
-                    className="w-full border border-black px-4 py-4 text-sm outline-none"
+                    className={fieldClass}
                   />
                 </label>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">Country</span>
+                    <span className={fieldLabelClass}>Country</span>
                     <select
                       value={checkoutDetails.country}
                       onChange={(event) => onCheckoutFieldChange("country", event.target.value)}
-                      className="workhorse-sans w-full border border-black bg-white px-4 py-4 text-sm outline-none"
+                      className={selectClass}
                       style={{ fontFamily: "inherit" }}
                     >
                       {COUNTRY_OPTIONS.map((country) => (
@@ -1126,31 +1130,31 @@ function CheckoutPage({
                     </select>
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">State / Region</span>
+                    <span className={fieldLabelClass}>State / Region</span>
                     <input
                       type="text"
                       value={checkoutDetails.stateRegion}
                       onChange={(event) => onCheckoutFieldChange("stateRegion", event.target.value)}
-                      className="w-full border border-black px-4 py-4 text-sm outline-none"
+                      className={fieldClass}
                     />
                   </label>
                 </div>
                 <label className="block space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em]">Postal Code</span>
+                  <span className={fieldLabelClass}>Postal Code</span>
                   <input
                     type="text"
                     value={checkoutDetails.postalCode}
                     onChange={(event) => onCheckoutFieldChange("postalCode", event.target.value)}
-                    className="w-full border border-black px-4 py-4 text-sm outline-none"
+                    className={fieldClass}
                   />
                 </label>
-                <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-3">
+                <div className="grid grid-cols-1 gap-3 min-[440px]:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">Phone Code</span>
+                    <span className={fieldLabelClass}>Phone Code</span>
                     <select
                       value={checkoutDetails.phoneCountryCode}
                       onChange={(event) => onCheckoutFieldChange("phoneCountryCode", event.target.value)}
-                      className="workhorse-sans w-full border border-black bg-white px-4 py-4 text-sm outline-none"
+                      className={selectClass}
                       style={{ fontFamily: "inherit" }}
                     >
                       {COUNTRY_DIALING_OPTIONS.map((entry) => (
@@ -1161,12 +1165,12 @@ function CheckoutPage({
                     </select>
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[11px] uppercase tracking-[0.2em]">Phone Number</span>
+                    <span className={fieldLabelClass}>Phone Number</span>
                     <input
                       type="tel"
                       value={checkoutDetails.phoneNumber}
                       onChange={(event) => onCheckoutFieldChange("phoneNumber", event.target.value)}
-                      className="w-full border border-black px-4 py-4 text-sm outline-none"
+                      className={fieldClass}
                     />
                   </label>
                 </div>
@@ -1175,7 +1179,7 @@ function CheckoutPage({
 
             {paymentMethod === "stripe" ? (
               stripePromise ? (
-                <div className="mt-8 max-w-xl">
+                <div className="mt-8 w-full max-w-xl">
                   <Elements stripe={stripePromise}>
                     <InlineStripeCardForm
                       amountLabel={subtotal.toFixed(2)}
@@ -1185,7 +1189,7 @@ function CheckoutPage({
                   </Elements>
                 </div>
               ) : (
-                <div className="mt-8 max-w-xl">
+                <div className="mt-8 w-full max-w-xl">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-red-600">
                     {stripePublishableKeyError || "Add STRIPE_PUBLISHABLE_KEY to your .env file to enable embedded card payments."}
                   </p>
@@ -1195,7 +1199,7 @@ function CheckoutPage({
               <button
                 onClick={onStartCheckout}
                 disabled={cartItems.length === 0 || checkoutState.loading}
-                className="mt-8 w-full max-w-xl border border-black bg-black px-4 py-4 text-[11px] uppercase tracking-[0.24em] text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-8 w-full max-w-xl border border-black bg-black px-4 py-4 text-[11px] uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60 sm:tracking-[0.24em]"
               >
                 {checkoutState.loading ? "Redirecting..." : "Continue with PayPal"}
               </button>
@@ -1207,12 +1211,12 @@ function CheckoutPage({
             ) : null}
           </div>
 
-          <div className="pt-5">
-            <p className="mb-6 text-[11px] uppercase tracking-[0.2em]">Order Summary</p>
-            <div className="space-y-8">
+          <div className="pt-2 lg:pt-5">
+            <p className="mb-5 text-[11px] uppercase tracking-[0.2em] sm:mb-6">Order Summary</p>
+            <div className="space-y-6 sm:space-y-8">
               {cartItems.map((item) => (
-                <div key={item.id} className="grid grid-cols-[72px_1fr_auto] items-start gap-4 text-[11px] uppercase tracking-[0.2em]">
-                  <div className="flex h-[72px] items-center justify-center bg-white">
+                <div key={item.id} className="grid grid-cols-[64px_minmax(0,1fr)] items-start gap-3 text-[10px] uppercase tracking-[0.16em] sm:grid-cols-[72px_1fr_auto] sm:gap-4 sm:text-[11px] sm:tracking-[0.2em]">
+                  <div className="flex h-16 items-center justify-center bg-white sm:h-[72px]">
                     <ProductImage
                       src={item.thumbnail || item.image}
                       fallbackSrc={item.fallbackThumbnail || item.fallbackImage}
@@ -1222,11 +1226,11 @@ function CheckoutPage({
                       className="h-full w-full object-contain"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-black">{item.title}</p>
+                  <div className="min-w-0 space-y-1">
+                    <p className="break-words text-black">{item.title}</p>
                     <p className="text-black/60">Qty</p>
                   </div>
-                  <div className="space-y-2 text-right">
+                  <div className="col-span-2 flex items-center justify-between gap-4 space-y-0 text-right sm:col-span-1 sm:block sm:space-y-2">
                     <p className="text-black">EUR {item.price * item.quantity}</p>
                     <div className="flex items-center justify-end gap-3 text-black">
                       <button
@@ -1251,20 +1255,20 @@ function CheckoutPage({
                 </div>
               ))}
 
-              <div className="space-y-3 border-t border-black pt-5 text-[11px] uppercase tracking-[0.2em]">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3 border-t border-black pt-5 text-[10px] uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.2em]">
+                <div className="flex items-center justify-between gap-5">
                   <span>Subtotal</span>
                   <span>EUR {subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-5">
                   <span>Shipping</span>
-                  <span>Calculated at next step</span>
+                  <span className="text-right">Calculated at next step</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-5">
                   <span>Taxes</span>
                   <span>EUR 0.00</span>
                 </div>
-                <div className="flex items-center justify-between text-black">
+                <div className="flex items-center justify-between gap-5 text-black">
                   <span>Total</span>
                   <span>EUR {subtotal.toFixed(2)}</span>
                 </div>
@@ -1352,8 +1356,35 @@ export default function App() {
   const [stripePublishableKey, setStripePublishableKey] = useState(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
   const [stripePublishableKeyError, setStripePublishableKeyError] = useState("");
   const [isFooterAnimated, setIsFooterAnimated] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 639px)").matches : false
+  );
   const shopViewportRef = useRef(null);
   const visibleRowRefs = useRef([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const query = window.matchMedia("(max-width: 639px)");
+    const handleViewportChange = (event) => {
+      setIsMobileViewport(event.matches);
+    };
+
+    setIsMobileViewport(query.matches);
+    if (query.addEventListener) {
+      query.addEventListener("change", handleViewportChange);
+    } else {
+      query.addListener(handleViewportChange);
+    }
+
+    return () => {
+      if (query.removeEventListener) {
+        query.removeEventListener("change", handleViewportChange);
+      } else {
+        query.removeListener(handleViewportChange);
+      }
+    };
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === "All") {
@@ -1368,8 +1399,8 @@ export default function App() {
     [stripePublishableKey]
   );
 
-  const columnsPerRowByZoom = [4, 2, 2, 1];
-  const rowsPerScreenByZoom = [3, 2, 1, 1];
+  const columnsPerRowByZoom = isMobileViewport ? [2, 2, 1, 1] : [4, 2, 2, 1];
+  const rowsPerScreenByZoom = isMobileViewport ? [4, 3, 1, 1] : [3, 2, 1, 1];
   const columnsPerRow = columnsPerRowByZoom[zoomLevel];
   const rowsPerScreen = rowsPerScreenByZoom[zoomLevel];
   const gridColumnsClass =
@@ -1385,8 +1416,8 @@ export default function App() {
   const rowHeightStyle = {
     transformOrigin: "50% 50%",
     height: isDenseGrid
-      ? `calc((100svh - 96px) / ${rowsPerScreen} - 14px)`
-      : `calc((100svh - 96px) / ${rowsPerScreen})`,
+      ? `calc((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen} - ${isMobileViewport ? "8px" : "14px"})`
+      : `calc((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen})`,
   };
   const productGroups = useMemo(
     () => chunkProducts(filteredProducts, columnsPerRow),
@@ -2197,19 +2228,19 @@ export default function App() {
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
       <style>{fontStyles}</style>
       <header className="sticky top-0 z-40 bg-white">
-        <div className="flex justify-center px-3 pb-1 pt-3 sm:px-5">
+        <div className="flex justify-center px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
           <button
             onClick={handleHomeClick}
             aria-label="Go to top"
             className="flex items-center justify-center"
           >
-            <div className="flex h-20 w-64 items-center justify-center overflow-hidden bg-white sm:h-24 sm:w-[28rem]">
+            <div className="flex h-14 w-48 items-center justify-center overflow-hidden bg-white sm:h-24 sm:w-[28rem]">
               <img src={logoImageSrc} alt="Workhorse home" className="h-full w-full object-contain" />
             </div>
           </button>
         </div>
 
-        <div className="relative flex items-center justify-center px-3 py-3 sm:px-5">
+        <div className="relative flex items-center justify-center px-3 py-2 sm:px-5 sm:py-3">
           <div className="absolute left-3 flex items-center gap-3 sm:left-5">
             {currentView === "shop" ? (
               <button
@@ -2231,7 +2262,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={closeProductPage}
-                className="flex h-10 w-10 items-center justify-center transition hover:opacity-50"
+                className="flex h-9 w-9 items-center justify-center transition hover:opacity-50 sm:h-10 sm:w-10"
                 aria-label="Back to home"
               >
                 <span aria-hidden="true" className="block h-3 w-3 rounded-full border-2 border-black"></span>
@@ -2240,7 +2271,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={continueShopping}
-                className="flex h-10 w-10 items-center justify-center transition hover:opacity-50"
+                className="flex h-9 w-9 items-center justify-center transition hover:opacity-50 sm:h-10 sm:w-10"
                 aria-label="Back to shop"
               >
                 <span aria-hidden="true" className="text-2xl leading-none">{"<"}</span>
@@ -2282,7 +2313,7 @@ export default function App() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.45, y: -8 }}
                   transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative flex h-10 w-10 items-center justify-center transition hover:opacity-50"
+                  className="relative flex h-9 w-9 items-center justify-center transition hover:opacity-50 sm:h-10 sm:w-10"
                   aria-label={`Open cart with ${cartItemCount} item${cartItemCount === 1 ? "" : "s"}`}
                 >
                   <svg
@@ -2306,7 +2337,7 @@ export default function App() {
               ) : null}
             </AnimatePresence>
             <button
-              className="flex h-10 w-10 items-center justify-center border border-black md:hidden"
+              className="flex h-9 w-9 items-center justify-center border border-black md:hidden"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label="Toggle menu"
             >
@@ -2340,8 +2371,8 @@ export default function App() {
         ref={shopViewportRef}
         className={
           currentView === "shop"
-            ? "flex-1 overflow-y-auto snap-y snap-mandatory"
-            : "flex-1 overflow-hidden"
+            ? "flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory"
+            : "flex-1 overflow-y-auto overflow-x-hidden"
         }
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -2430,14 +2461,14 @@ export default function App() {
               exit="exit"
               transition={pageTransition}
               id="about"
-              className="min-h-[calc(100vh-97px)] border-b border-black"
+              className="min-h-[calc(100svh-92px)] sm:min-h-[calc(100vh-97px)]"
             >
-              <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-                <div className="max-w-3xl space-y-10">
+              <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
+                <div className="max-w-3xl space-y-8 sm:space-y-10">
                   <p className="text-[11px] uppercase tracking-[0.24em]">About</p>
-                  <div className="space-y-6">
-                    <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
-                    <figure className="w-full max-w-[26rem] overflow-hidden bg-white">
+                  <div className="space-y-5 sm:space-y-6">
+                    <h1 className="workhorse-serif text-3xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
+                    <figure className="mx-auto w-full max-w-[22rem] overflow-hidden bg-white sm:mx-0 sm:max-w-[26rem]">
                       <img
                         src={aboutImageSrc}
                         alt="Jonathan Jaffrey in front of his artwork"
@@ -2467,12 +2498,12 @@ export default function App() {
                     <div className="space-y-1 text-[11px] tracking-[0.2em]">
                       <a
                         href="mailto:Jonjaff623@gmail.com"
-                        className="flex items-center justify-between border-b border-black py-4 hover:opacity-50"
+                        className="flex flex-col gap-2 border-b border-black py-4 hover:opacity-50 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <span className="uppercase">Email</span>
-                        <span className="text-black/60">Jonjaff623@gmail.com</span>
+                        <span className="break-all text-black/60 sm:text-right">Jonjaff623@gmail.com</span>
                       </a>
-                      <div className="flex items-center justify-between border-b border-black py-4 uppercase">
+                      <div className="flex items-center justify-between gap-4 border-b border-black py-4 uppercase">
                         <span>Socials</span>
                         <span className="text-black/60">@JONJAFF</span>
                       </div>
