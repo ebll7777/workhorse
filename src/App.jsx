@@ -1,6 +1,5 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import { AnimatePresence, motion } from "framer-motion";
 import { products } from "./data/products";
 
@@ -15,8 +14,8 @@ const pageTransition = {
   ease: [0.22, 1, 0.36, 1],
 };
 
-const logoImageSrc = "/products/banner.png";
-const footerImageSrc = "/products/Workhorse.gmbh.png";
+const logoImageSrc = "/products/banner.webp";
+const footerImageSrc = "/products/Workhorse.gmbh.webp";
 const footerImageAnimatedSrc = "/output-onlinegiftools.gif";
 const aboutImageSrc = "/about-jonjaff.webp";
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -1394,10 +1393,13 @@ export default function App() {
     return products.filter((item) => item.category === activeFilter);
   }, [activeFilter]);
 
-  const stripePromise = useMemo(
-    () => (stripePublishableKey ? loadStripe(stripePublishableKey) : null),
-    [stripePublishableKey]
-  );
+  const stripePromise = useMemo(() => {
+    if (!stripePublishableKey || (currentView !== "checkout" && currentView !== "cart")) {
+      return null;
+    }
+
+    return import("@stripe/stripe-js").then(({ loadStripe }) => loadStripe(stripePublishableKey));
+  }, [currentView, stripePublishableKey]);
 
   const columnsPerRowByZoom = isMobileViewport ? [2, 2, 1, 1] : [4, 2, 2, 1];
   const rowsPerScreenByZoom = isMobileViewport ? [4, 3, 1, 1] : [3, 2, 1, 1];
@@ -1610,6 +1612,13 @@ export default function App() {
 
   useEffect(() => {
     let isActive = true;
+    const shouldLoadStripeConfig = currentView === "checkout" || currentView === "cart";
+
+    if (!shouldLoadStripeConfig) {
+      return () => {
+        isActive = false;
+      };
+    }
 
     if (stripePublishableKey) {
       setStripePublishableKeyError("");
@@ -1655,7 +1664,7 @@ export default function App() {
     return () => {
       isActive = false;
     };
-  }, [stripePublishableKey]);
+  }, [currentView, stripePublishableKey]);
 
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
@@ -2351,18 +2360,31 @@ export default function App() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="border-t border-black bg-white md:hidden">
-            <div className="workhorse-serif flex flex-col text-base tracking-[0.05em]">
-              {navItems.map((item) => (
+          <div className="border-t border-black bg-white px-4 py-4 md:hidden">
+            <nav className="workhorse-serif mx-auto grid max-w-[19rem] grid-cols-5 gap-y-1 text-base tracking-[0.01em]">
+              {desktopNavTopItems.map((item, index) => (
                 <button
+                  type="button"
                   key={item.label}
                   onClick={item.action}
-                  className="border-b border-black px-4 py-4 text-left last:border-b-0"
+                  className="text-center leading-tight transition hover:opacity-50"
+                  style={{ gridColumn: index * 2 + 1, gridRow: 1 }}
                 >
                   {item.label}
                 </button>
               ))}
-            </div>
+              {desktopNavBottomItems.map((item, index) => (
+                <button
+                  type="button"
+                  key={item.label}
+                  onClick={item.action}
+                  className="text-center leading-tight transition hover:opacity-50"
+                  style={{ gridColumn: index * 2 + 2, gridRow: 2 }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
           </div>
         )}
       </header>

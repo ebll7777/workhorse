@@ -115,7 +115,8 @@ export const products = [
     title: "Sugar Hill Mandra",
     category: "Stickers",
     price: 8,
-    image: productAsset("Stickers", "Sugar Hill Mandra.jpg"),
+    image: productAsset("Stickers", "Sugar Hill Mandra.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/Sugar Hill Mandra.webp"),
     description:
       "Placeholder sticker description. Replace with your own product details, materials, and edition notes.",
   },
@@ -125,7 +126,8 @@ export const products = [
     title: "Blonde",
     category: "Stickers",
     price: 14,
-    image: productAsset("Stickers", "Blonde.png"),
+    image: productAsset("Stickers", "Blonde.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/Blonde.webp"),
     description: "Minimal sticker set placeholder for the Workhorse catalog.",
   },
   {
@@ -134,7 +136,8 @@ export const products = [
     title: "February First",
     category: "Paintings",
     price: 320,
-    image: productAsset("Paintings", "February First.png"),
+    image: productAsset("Paintings", "February First.webp"),
+    thumbnail: productAsset("Paintings", "thumbs/February First.webp"),
     details: ["Acrylic on Canvas", "30cm x 40cm"],
     description: "Acrylic on Canvas. 30cm x 40cm.",
   },
@@ -144,7 +147,8 @@ export const products = [
     title: "Kwain The Unthinkable",
     category: "Paintings",
     price: 540,
-    image: productAsset("Paintings", "Kwain The Unthinkable.png"),
+    image: productAsset("Paintings", "Kwain The Unthinkable.webp"),
+    thumbnail: productAsset("Paintings", "thumbs/Kwain The Unthinkable.webp"),
     details: ["Acrylic on Canvas", "30cm x 40cm"],
     description: "Acrylic on Canvas. 30cm x 40cm.",
   },
@@ -155,6 +159,7 @@ export const products = [
     category: "Furniture",
     price: 580,
     image: productAsset("Furniture", "dance.gif"),
+    thumbnail: productAsset("Furniture", "dance-thumb.webp"),
     media: [
       {
         src: productAsset("Furniture", "dance.gif"),
@@ -210,7 +215,8 @@ export const products = [
     title: "Charlie",
     category: "Stickers",
     price: 6,
-    image: productAsset("Stickers", "Charlie.png"),
+    image: productAsset("Stickers", "Charlie.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/Charlie.webp"),
     description: "Replace this text with your own short product story.",
   },
   {
@@ -219,7 +225,8 @@ export const products = [
     title: "Guerilla",
     category: "Stickers",
     price: 6,
-    image: productAsset("Stickers", "Guerilla.png"),
+    image: productAsset("Stickers", "Guerilla.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/Guerilla.webp"),
     description: "Replace this with your fourth sticker details.",
   },
   {
@@ -228,7 +235,8 @@ export const products = [
     title: "Help me",
     category: "Stickers",
     price: 6,
-    image: productAsset("Stickers", "Help me.png"),
+    image: productAsset("Stickers", "Help me.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/Help me.webp"),
     description: "Replace this with your fifth sticker details.",
   },
   {
@@ -237,7 +245,8 @@ export const products = [
     title: "POW!",
     category: "Stickers",
     price: 6,
-    image: productAsset("Stickers", "POW!.png"),
+    image: productAsset("Stickers", "POW!.webp"),
+    thumbnail: productAsset("Stickers", "thumbs/POW!.webp"),
     description: "Replace this with your sixth sticker details.",
   },
   {

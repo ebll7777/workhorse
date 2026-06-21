@@ -12,6 +12,8 @@ public/products/*.png
 public/products/*.webp
 !public/products/banner.png
 !public/products/Workhorse.gmbh.png
+!public/products/banner.webp
+!public/products/Workhorse.gmbh.webp
 public/products/drawings/*
 !public/products/drawings/full/
 !public/products/drawings/full/**
