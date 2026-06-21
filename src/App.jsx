@@ -18,6 +18,7 @@ const pageTransition = {
 const logoImageSrc = "/products/banner.png";
 const footerImageSrc = "/products/Workhorse.gmbh.png";
 const footerImageAnimatedSrc = "/output-onlinegiftools.gif";
+const aboutImageSrc = "/about-jonjaff.webp";
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const googleMapsScriptId = "workhorse-google-maps-script";
 let googleMapsPlacesPromise;
@@ -2436,6 +2437,15 @@ export default function App() {
                   <p className="text-[11px] uppercase tracking-[0.24em]">About</p>
                   <div className="space-y-6">
                     <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
+                    <figure className="w-full max-w-[26rem] overflow-hidden bg-white">
+                      <img
+                        src={aboutImageSrc}
+                        alt="Jonathan Jaffrey in front of his artwork"
+                        loading="lazy"
+                        decoding="async"
+                        className="h-auto w-full object-cover"
+                      />
+                    </figure>
                     <div className="space-y-5 text-sm leading-7 text-black/75">
                       <p>
                         Feet dangling off the chair scribbling at his tiny desk, sketching drawings on the side of notebooks distracted in class, creating novels with pen, brushes, and on screen, from lived to fiction. For Jonathan Jaffrey, drawing has always been part of his life. It started from a young age. His dad told him stories, sketching characters that remain with him to this day. Jon took what was a natural born hobby and used it as a tool to express experiences, cultures, and characters, all from a truthfully raw point of view.
