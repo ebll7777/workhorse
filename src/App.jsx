@@ -1358,6 +1358,7 @@ export default function App() {
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(max-width: 639px)").matches : false
   );
+  const [activeShopRowIndex, setActiveShopRowIndex] = useState(0);
   const shopViewportRef = useRef(null);
   const visibleRowRefs = useRef([]);
 
@@ -1425,6 +1426,9 @@ export default function App() {
     () => chunkProducts(filteredProducts, columnsPerRow),
     [filteredProducts, columnsPerRow]
   );
+  const renderedRowBuffer = rowsPerScreen + 1;
+  const shouldRenderProductGroup = (index) =>
+    Math.abs(index - activeShopRowIndex) <= renderedRowBuffer;
 
   const selectedProductIndex = selectedProduct
     ? filteredProducts.findIndex((item) => item.id === selectedProduct.id)
@@ -1436,12 +1440,17 @@ export default function App() {
 
     if (!container || rows.length === 0) return 0;
 
-    const currentTop = container.scrollTop;
+    const containerCanScroll = container.scrollHeight > container.clientHeight + 1;
+    const viewportAnchor = containerCanScroll
+      ? 0
+      : document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
     let currentIndex = 0;
     let closestDistance = Number.POSITIVE_INFINITY;
 
     rows.forEach((row, index) => {
-      const distance = Math.abs(row.offsetTop - currentTop);
+      const distance = containerCanScroll
+        ? Math.abs(row.offsetTop - container.scrollTop)
+        : Math.abs(row.getBoundingClientRect().top - viewportAnchor);
       if (distance < closestDistance) {
         closestDistance = distance;
         currentIndex = index;
@@ -1469,12 +1478,58 @@ export default function App() {
           ? Math.min(currentIndex + 1, rows.length - 1)
           : Math.max(currentIndex - 1, 0);
 
-      container.scrollTo({ top: rows[nextIndex].offsetTop, behavior: "auto" });
+      if (container.scrollHeight > container.clientHeight + 1) {
+        container.scrollTo({ top: rows[nextIndex].offsetTop, behavior: "auto" });
+      } else {
+        const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+        const nextTop = window.scrollY + rows[nextIndex].getBoundingClientRect().top - headerBottom;
+        window.scrollTo({ top: Math.max(0, nextTop), behavior: "auto" });
+      }
     };
 
     window.addEventListener("keydown", handleKeyNavigation, { passive: false });
     return () => window.removeEventListener("keydown", handleKeyNavigation);
   }, [currentView, selectedProduct, productGroups.length, zoomLevel]);
+
+  useEffect(() => {
+    if (currentView !== "shop") return;
+
+    visibleRowRefs.current = visibleRowRefs.current.slice(0, productGroups.length);
+    setActiveShopRowIndex(0);
+  }, [activeFilter, columnsPerRow, currentView, productGroups.length]);
+
+  useEffect(() => {
+    if (currentView !== "shop" || selectedProduct) return undefined;
+
+    const container = shopViewportRef.current;
+    if (!container) return undefined;
+
+    let frameId = null;
+    const updateActiveRow = () => {
+      frameId = null;
+      const nextRowIndex = getClosestRowIndex();
+      setActiveShopRowIndex((currentIndex) =>
+        currentIndex === nextRowIndex ? currentIndex : nextRowIndex
+      );
+    };
+
+    const handleScroll = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(updateActiveRow);
+    };
+
+    updateActiveRow();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, [currentView, selectedProduct, productGroups.length, rowsPerScreen, zoomLevel]);
 
   useEffect(() => {
     if (pendingRowIndex === null) return;
@@ -1484,7 +1539,13 @@ export default function App() {
     const safeIndex = Math.max(0, Math.min(pendingRowIndex, rows.length - 1));
 
     if (container && rows[safeIndex]) {
-      container.scrollTo({ top: rows[safeIndex].offsetTop, behavior: "auto" });
+      if (container.scrollHeight > container.clientHeight + 1) {
+        container.scrollTo({ top: rows[safeIndex].offsetTop, behavior: "auto" });
+      } else {
+        const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+        const nextTop = window.scrollY + rows[safeIndex].getBoundingClientRect().top - headerBottom;
+        window.scrollTo({ top: Math.max(0, nextTop), behavior: "auto" });
+      }
     }
 
     setPendingRowIndex(null);
@@ -2421,17 +2482,23 @@ export default function App() {
                       className={rowPaddingClass}
                     >
                       <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
-                        {group.map((product) => (
-                          <div key={product.id} className="min-h-0">
-                            <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
-                          </div>
-                        ))}
-                        {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
-                          <div
-                            key={`empty-${activeFilter}-${index}-${fillerIndex}`}
-                            className="min-h-0 bg-white"
-                          />
-                        ))}
+                        {shouldRenderProductGroup(index) ? (
+                          <>
+                            {group.map((product) => (
+                              <div key={product.id} className="min-h-0">
+                                <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
+                              </div>
+                            ))}
+                            {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
+                              <div
+                                key={`empty-${activeFilter}-${index}-${fillerIndex}`}
+                                className="min-h-0 bg-white"
+                              />
+                            ))}
+                          </>
+                        ) : (
+                          <div className={`col-span-full h-full ${gridColumnsClass}`} aria-hidden="true" />
+                        )}
                       </div>
                     </div>
                   ))}
