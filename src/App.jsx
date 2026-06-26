@@ -579,6 +579,44 @@ function sortItemsAlphabetically(items) {
   );
 }
 
+const minArtworkZoom = 1;
+const maxArtworkZoom = 4;
+
+function clampValue(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getTouchDistance(touches) {
+  const [firstTouch, secondTouch] = touches;
+  const deltaX = secondTouch.clientX - firstTouch.clientX;
+  const deltaY = secondTouch.clientY - firstTouch.clientY;
+
+  return Math.hypot(deltaX, deltaY);
+}
+
+function getTouchCenter(touches) {
+  const [firstTouch, secondTouch] = touches;
+
+  return {
+    x: (firstTouch.clientX + secondTouch.clientX) / 2,
+    y: (firstTouch.clientY + secondTouch.clientY) / 2,
+  };
+}
+
+function clampArtworkPan(offset, scale, bounds) {
+  if (scale <= minArtworkZoom || !bounds) {
+    return { x: 0, y: 0 };
+  }
+
+  const maxX = (bounds.width * (scale - 1)) / 2;
+  const maxY = (bounds.height * (scale - 1)) / 2;
+
+  return {
+    x: clampValue(offset.x, -maxX, maxX),
+    y: clampValue(offset.y, -maxY, maxY),
+  };
+}
+
 function ProductImage({
   src: initialSrc,
   fallbackSrc,
@@ -644,9 +682,25 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isZoomActive, setIsZoomActive] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [touchZoom, setTouchZoom] = useState({ scale: 1, x: 0, y: 0 });
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
+  const imageViewportRef = useRef(null);
   const zoomTargetRef = useRef({ x: 50, y: 50 });
   const zoomFrameRef = useRef(null);
+  const touchZoomRef = useRef({ scale: 1, x: 0, y: 0 });
+  const touchGestureRef = useRef({
+    mode: null,
+    startDistance: 0,
+    startScale: 1,
+    startCenter: { x: 0, y: 0 },
+    startPoint: { x: 0, y: 0 },
+    startOffset: { x: 0, y: 0 },
+  });
+  const lastTouchInteractionRef = useRef(0);
+  const setTouchZoomState = (nextZoom) => {
+    touchZoomRef.current = nextZoom;
+    setTouchZoom(nextZoom);
+  };
   const mediaItems = product.media?.length
     ? product.media
     : [
@@ -665,8 +719,10 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
     setImageSrc(product.media?.[0]?.src ?? product.image);
     setIsZoomActive(false);
     setZoomPosition({ x: 50, y: 50 });
+    setTouchZoomState({ scale: 1, x: 0, y: 0 });
     setPurchaseQuantity(1);
     zoomTargetRef.current = { x: 50, y: 50 };
+    touchGestureRef.current.mode = null;
   }, [product]);
 
   useEffect(() => {
@@ -714,6 +770,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   };
 
   const handleZoomEnter = () => {
+    if (Date.now() - lastTouchInteractionRef.current < 700) return;
     setIsZoomActive(true);
   };
 
@@ -730,13 +787,155 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
 
     setSelectedMediaIndex(index);
     setImageSrc(nextMedia.src);
+    setTouchZoomState({ scale: 1, x: 0, y: 0 });
+    touchGestureRef.current.mode = null;
     handleZoomLeave();
+  };
+
+  const getViewportBounds = () => imageViewportRef.current?.getBoundingClientRect();
+
+  const settleTouchZoom = (nextZoom) => {
+    if (nextZoom.scale <= 1.02) {
+      setTouchZoomState({ scale: 1, x: 0, y: 0 });
+      return;
+    }
+
+    const nextScale = clampValue(nextZoom.scale, minArtworkZoom, maxArtworkZoom);
+
+    setTouchZoomState({
+      scale: nextScale,
+      ...clampArtworkPan(
+        { x: nextZoom.x, y: nextZoom.y },
+        nextScale,
+        getViewportBounds()
+      ),
+    });
+  };
+
+  const handleTouchStart = (event) => {
+    lastTouchInteractionRef.current = Date.now();
+    setIsZoomActive(false);
+
+    if (event.touches.length >= 2) {
+      if (event.cancelable) event.preventDefault();
+
+      const touches = Array.from(event.touches).slice(0, 2);
+      const currentTouchZoom = touchZoomRef.current;
+      touchGestureRef.current = {
+        mode: "pinch",
+        startDistance: getTouchDistance(touches),
+        startScale: currentTouchZoom.scale,
+        startCenter: getTouchCenter(touches),
+        startPoint: { x: 0, y: 0 },
+        startOffset: { x: currentTouchZoom.x, y: currentTouchZoom.y },
+      };
+      return;
+    }
+
+    if (event.touches.length === 1 && touchZoomRef.current.scale > 1.01) {
+      if (event.cancelable) event.preventDefault();
+
+      const [touch] = event.touches;
+      touchGestureRef.current = {
+        ...touchGestureRef.current,
+        mode: "pan",
+        startPoint: { x: touch.clientX, y: touch.clientY },
+        startOffset: { x: touchZoomRef.current.x, y: touchZoomRef.current.y },
+      };
+    }
+  };
+
+  const handleTouchMove = (event) => {
+    lastTouchInteractionRef.current = Date.now();
+
+    if (event.touches.length >= 2) {
+      if (event.cancelable) event.preventDefault();
+
+      const touches = Array.from(event.touches).slice(0, 2);
+      const gesture = touchGestureRef.current;
+      const startDistance = gesture.startDistance || getTouchDistance(touches);
+      const nextScale = clampValue(
+        gesture.startScale * (getTouchDistance(touches) / startDistance),
+        minArtworkZoom,
+        maxArtworkZoom
+      );
+      const center = getTouchCenter(touches);
+      const nextOffset = {
+        x: gesture.startOffset.x + center.x - gesture.startCenter.x,
+        y: gesture.startOffset.y + center.y - gesture.startCenter.y,
+      };
+      const clampedOffset = clampArtworkPan(nextOffset, nextScale, getViewportBounds());
+
+      setTouchZoomState({
+        scale: nextScale,
+        x: clampedOffset.x,
+        y: clampedOffset.y,
+      });
+      return;
+    }
+
+    if (event.touches.length === 1 && touchZoomRef.current.scale > 1.01) {
+      if (event.cancelable) event.preventDefault();
+
+      const [touch] = event.touches;
+      const gesture = touchGestureRef.current;
+      const nextOffset = {
+        x: gesture.startOffset.x + touch.clientX - gesture.startPoint.x,
+        y: gesture.startOffset.y + touch.clientY - gesture.startPoint.y,
+      };
+      const currentTouchZoom = touchZoomRef.current;
+      const clampedOffset = clampArtworkPan(nextOffset, currentTouchZoom.scale, getViewportBounds());
+
+      setTouchZoomState({
+        ...currentTouchZoom,
+        x: clampedOffset.x,
+        y: clampedOffset.y,
+      });
+    }
+  };
+
+  const handleTouchEnd = (event) => {
+    lastTouchInteractionRef.current = Date.now();
+
+    if (event.touches.length >= 2) {
+      const touches = Array.from(event.touches).slice(0, 2);
+      touchGestureRef.current = {
+        ...touchGestureRef.current,
+        mode: "pinch",
+        startDistance: getTouchDistance(touches),
+        startScale: touchZoomRef.current.scale,
+        startCenter: getTouchCenter(touches),
+        startOffset: { x: touchZoomRef.current.x, y: touchZoomRef.current.y },
+      };
+      return;
+    }
+
+    if (event.touches.length === 1 && touchZoomRef.current.scale > 1.01) {
+      const [touch] = event.touches;
+      touchGestureRef.current = {
+        ...touchGestureRef.current,
+        mode: "pan",
+        startPoint: { x: touch.clientX, y: touch.clientY },
+        startOffset: { x: touchZoomRef.current.x, y: touchZoomRef.current.y },
+      };
+      return;
+    }
+
+    touchGestureRef.current.mode = null;
+    settleTouchZoom(touchZoomRef.current);
   };
 
   const isShopProduct = product.category === "Stickers";
   const detailLines = product.details?.length
     ? product.details
     : ["Customize this field", "Customize this field"];
+  const isTouchZoomed = touchZoom.scale > 1.01;
+  const isTouchGestureActive = touchGestureRef.current.mode !== null;
+  const artworkTransform = isTouchZoomed
+    ? `translate3d(${touchZoom.x}px, ${touchZoom.y}px, 0) scale(${touchZoom.scale})`
+    : isZoomActive
+      ? "scale(2.35)"
+      : "scale(1)";
 
   const handleAddToCart = () => {
     onAddToCart(product, purchaseQuantity);
@@ -764,12 +963,21 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
         <div className="bg-white">
           <div className="flex h-full flex-col items-center justify-center px-10 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
             <div
+              ref={imageViewportRef}
               className={`relative mx-auto flex h-full w-full max-w-[32rem] items-center justify-center overflow-hidden bg-white sm:max-w-[38rem] lg:max-w-[44rem] ${
-                isZoomActive ? "cursor-grab" : "cursor-zoom-in"
+                isTouchZoomed || isZoomActive ? "cursor-grab" : "cursor-zoom-in"
               }`}
+              style={{
+                touchAction: "none",
+                overscrollBehavior: "contain",
+              }}
               onMouseEnter={handleZoomEnter}
               onMouseLeave={handleZoomLeave}
               onMouseMove={handleZoomMove}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
             >
               <img
                 src={imageSrc}
@@ -779,9 +987,13 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                 fetchPriority="high"
                 className="max-h-[38svh] w-full object-contain sm:max-h-[56vh] lg:max-h-[60vh]"
                 style={{
-                  transform: isZoomActive ? "scale(2.35)" : "scale(1)",
-                  transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  transition: isZoomActive ? "transform 120ms ease-out" : "transform 220ms ease-out",
+                  transform: artworkTransform,
+                  transformOrigin: isTouchZoomed ? "center center" : `${zoomPosition.x}% ${zoomPosition.y}%`,
+                  transition: isTouchGestureActive
+                    ? "none"
+                    : isZoomActive
+                      ? "transform 120ms ease-out"
+                      : "transform 220ms ease-out",
                   willChange: "transform",
                 }}
                 onError={() => {
