@@ -1518,7 +1518,6 @@ export default function App() {
 
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState("shop");
   const [zoomLevel, setZoomLevel] = useState(0);
   const [zoomDirection, setZoomDirection] = useState("in");
@@ -1903,7 +1902,6 @@ export default function App() {
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
     setCurrentView("shop");
-    setMobileMenuOpen(false);
     window.scrollTo({ top: 0 });
     if (shopViewportRef.current) {
       shopViewportRef.current.scrollTo({ top: 0, behavior: "auto" });
@@ -1917,14 +1915,12 @@ export default function App() {
   const openAbout = () => {
     setSelectedProduct(null);
     setCurrentView("about");
-    setMobileMenuOpen(false);
     window.scrollTo({ top: 0 });
   };
 
   const openCart = () => {
     setSelectedProduct(null);
     setCurrentView("checkout");
-    setMobileMenuOpen(false);
     setCheckoutState({ loading: false, error: "" });
     window.scrollTo({ top: 0 });
   };
@@ -2471,7 +2467,7 @@ export default function App() {
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
       <style>{fontStyles}</style>
       <header className="sticky top-0 z-40 bg-white">
-        <div className="flex justify-center px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
+        <div className="relative flex justify-center px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
           <button
             onClick={handleHomeClick}
             aria-label="Go to top"
@@ -2481,6 +2477,41 @@ export default function App() {
               <img src={logoImageSrc} alt="Workhorse home" className="h-full w-full object-contain" />
             </div>
           </button>
+          <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center sm:hidden">
+            <AnimatePresence initial={false}>
+              {cartItemCount > 0 ? (
+                <motion.button
+                  key="mobile-cart-button"
+                  type="button"
+                  onClick={openCart}
+                  initial={{ opacity: 0, scale: 0.45, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.45, y: -8 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative flex h-9 w-9 items-center justify-center transition hover:opacity-50"
+                  aria-label={`Open cart with ${cartItemCount} item${cartItemCount === 1 ? "" : "s"}`}
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="9" cy="20" r="1.25" />
+                    <circle cx="18" cy="20" r="1.25" />
+                    <path d="M3 4h2.2l2.1 10.2a1 1 0 0 0 1 .8h9.9a1 1 0 0 0 1-.8L21 7H7" />
+                  </svg>
+                  <span className="absolute -right-1 -top-1 min-w-[1rem] rounded-full border border-black bg-white px-1 text-center text-[9px] leading-4">
+                    {cartItemCount}
+                  </span>
+                </motion.button>
+              ) : null}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="relative flex items-center justify-center px-3 py-2 sm:px-5 sm:py-3">
@@ -2522,7 +2553,7 @@ export default function App() {
             ) : null}
           </div>
 
-          <nav className="workhorse-serif hidden w-full max-w-[19rem] grid-cols-5 gap-y-0.5 text-base tracking-[0.01em] md:grid">
+          <nav className="workhorse-serif grid w-full max-w-[19rem] grid-cols-5 gap-y-0.5 text-base tracking-[0.01em]">
             {desktopNavTopItems.map((item, index) => (
               <button
                 key={item.label}
@@ -2545,7 +2576,7 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="absolute right-3 flex items-center gap-3 sm:right-5">
+          <div className="absolute right-3 hidden items-center gap-3 sm:right-5 sm:flex">
             <AnimatePresence initial={false}>
               {cartItemCount > 0 ? (
                 <motion.button
@@ -2579,48 +2610,8 @@ export default function App() {
                 </motion.button>
               ) : null}
             </AnimatePresence>
-            <button
-              className="flex h-9 w-9 items-center justify-center border border-black md:hidden"
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
-              aria-label="Toggle menu"
-            >
-              <div className="space-y-1.5">
-                <span className="block h-px w-4 bg-black" />
-                <span className="block h-px w-4 bg-black" />
-                <span className="block h-px w-4 bg-black" />
-              </div>
-            </button>
           </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="border-t border-black bg-white px-4 py-4 md:hidden">
-            <nav className="workhorse-serif mx-auto grid max-w-[19rem] grid-cols-5 gap-y-1 text-base tracking-[0.01em]">
-              {desktopNavTopItems.map((item, index) => (
-                <button
-                  type="button"
-                  key={item.label}
-                  onClick={item.action}
-                  className="text-center leading-tight transition hover:opacity-50"
-                  style={{ gridColumn: index * 2 + 1, gridRow: 1 }}
-                >
-                  {item.label}
-                </button>
-              ))}
-              {desktopNavBottomItems.map((item, index) => (
-                <button
-                  type="button"
-                  key={item.label}
-                  onClick={item.action}
-                  className="text-center leading-tight transition hover:opacity-50"
-                  style={{ gridColumn: index * 2 + 2, gridRow: 2 }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        )}
       </header>
 
       <main
