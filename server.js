@@ -16,6 +16,7 @@ const app = express();
 const port = Number(process.env.PORT || 4242);
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 const paypalClientId = process.env.PAYPAL_CLIENT_ID;
 const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
 const paypalEnvironment = (process.env.PAYPAL_ENVIRONMENT || "sandbox").toLowerCase();
@@ -24,14 +25,18 @@ const paypalApiBaseUrl =
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const productMap = new Map(products.map((product) => [product.id, product]));
 
-const AUTH_STORE_DIR = path.resolve(process.env.AUTH_STORE_DIR || path.join(__dirname, "data"));
-const AUTH_STORE_PATH = path.join(AUTH_STORE_DIR, "auth-store.json");
+const DATA_STORE_DIR = path.resolve(
+  process.env.WORKHORSE_DATA_DIR || process.env.AUTH_STORE_DIR || path.join(__dirname, "data")
+);
+const DATA_STORE_PATH = path.join(DATA_STORE_DIR, "workhorse-store.json");
+const LEGACY_AUTH_STORE_PATH = path.join(DATA_STORE_DIR, "auth-store.json");
 const AUTH_COOKIE_NAME = "workhorse_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
-const DEFAULT_AUTH_STORE = {
+const DEFAULT_DATA_STORE = {
   users: [],
   sessions: [],
   subscribers: [],
+  orders: [],
 };
 const FRONTEND_DIST_PATH = path.join(__dirname, "dist");
 const FRONTEND_ENTRY_PATH = path.join(FRONTEND_DIST_PATH, "index.html");
@@ -49,6 +54,68 @@ if (!paypalClientId || !paypalClientSecret) {
 }
 
 app.set("trust proxy", 1);
+
+app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  if (!stripe || !stripeWebhookSecret) {
+    return res.status(500).json({ error: "Stripe webhooks are not configured." });
+  }
+
+  const signature = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, signature, stripeWebhookSecret);
+  } catch (error) {
+    return res.status(400).send(`Webhook Error: ${error instanceof Error ? error.message : "Invalid signature"}`);
+  }
+
+  try {
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object;
+      const store = await readDataStore();
+      const order = findOrder(store, {
+        orderId: paymentIntent.metadata?.orderId,
+        paymentIntentId: paymentIntent.id,
+      });
+
+      if (order && order.status !== "paid") {
+        markOrderPaid(order, {
+          provider: "stripe",
+          providerPaymentId: paymentIntent.id,
+          amountReceived: paymentIntent.amount_received,
+          status: paymentIntent.status,
+          source: "stripe_webhook",
+        });
+        await writeDataStore(store);
+      }
+    }
+
+    if (event.type === "payment_intent.payment_failed" || event.type === "payment_intent.canceled") {
+      const paymentIntent = event.data.object;
+      const store = await readDataStore();
+      const order = findOrder(store, {
+        orderId: paymentIntent.metadata?.orderId,
+        paymentIntentId: paymentIntent.id,
+      });
+
+      if (order && order.status !== "paid") {
+        markOrderFailed(order, {
+          provider: "stripe",
+          providerPaymentId: paymentIntent.id,
+          status: paymentIntent.status,
+          source: "stripe_webhook",
+        });
+        await writeDataStore(store);
+      }
+    }
+
+    return res.json({ received: true });
+  } catch (error) {
+    console.error("Stripe webhook handling failed:", error);
+    return res.status(500).json({ error: "Unable to process the Stripe webhook." });
+  }
+});
+
 app.use(express.json());
 
 function normalizeEmail(value = "") {
@@ -146,8 +213,114 @@ function buildCartEntries(items) {
   });
 }
 
-function getOrderMetadata(checkoutDetails, user, subscribeToUpdates) {
+function getCartTotalAmount(cartEntries) {
+  return cartEntries.reduce((sum, entry) => sum + entry.unitAmount * entry.quantity, 0);
+}
+
+function buildOrderItems(cartEntries) {
+  return cartEntries.map((entry) => ({
+    productId: entry.product.id,
+    code: entry.product.code,
+    title: entry.product.title,
+    category: entry.product.category,
+    quantity: entry.quantity,
+    unitAmount: entry.unitAmount,
+    totalAmount: entry.unitAmount * entry.quantity,
+    image: entry.product.thumbnail || entry.product.image,
+  }));
+}
+
+function createPendingOrder({
+  store,
+  cartEntries,
+  checkoutDetails,
+  user,
+  subscribeToUpdates,
+  paymentProvider,
+}) {
+  const now = new Date().toISOString();
+  const order = {
+    id: crypto.randomUUID(),
+    status: "pending",
+    currency: "eur",
+    amountTotal: getCartTotalAmount(cartEntries),
+    paymentProvider,
+    providerOrderId: "",
+    paymentIntentId: "",
+    checkoutDetails,
+    customerEmail: checkoutDetails.email,
+    subscriberOptIn: Boolean(subscribeToUpdates),
+    userId: user?.id || "",
+    items: buildOrderItems(cartEntries),
+    paymentDetails: {},
+    events: [
+      {
+        status: "pending",
+        createdAt: now,
+      },
+    ],
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  store.orders.push(order);
+  return order;
+}
+
+function appendOrderEvent(order, status, details = {}) {
+  const now = new Date().toISOString();
+  order.status = status;
+  order.updatedAt = now;
+  order.events = Array.isArray(order.events) ? order.events : [];
+  order.events.push({
+    status,
+    details,
+    createdAt: now,
+  });
+}
+
+function findOrder(store, { orderId = "", providerOrderId = "", paymentIntentId = "" } = {}) {
+  return store.orders.find((order) => {
+    return (
+      (orderId && order.id === orderId) ||
+      (providerOrderId && order.providerOrderId === providerOrderId) ||
+      (paymentIntentId && order.paymentIntentId === paymentIntentId)
+    );
+  });
+}
+
+function markOrderPaid(order, paymentDetails = {}) {
+  order.paymentDetails = {
+    ...order.paymentDetails,
+    ...paymentDetails,
+    paidAt: new Date().toISOString(),
+  };
+  appendOrderEvent(order, "paid", paymentDetails);
+}
+
+function markOrderFailed(order, paymentDetails = {}) {
+  order.paymentDetails = {
+    ...order.paymentDetails,
+    ...paymentDetails,
+    failedAt: new Date().toISOString(),
+  };
+  appendOrderEvent(order, "failed", paymentDetails);
+}
+
+function getOrderSummary(order) {
   return {
+    id: order.id,
+    status: order.status,
+    currency: order.currency,
+    amountTotal: order.amountTotal,
+    items: order.items,
+    customerEmail: order.customerEmail,
+  };
+}
+
+function getOrderMetadata(checkoutDetails, user, subscribeToUpdates, orderId) {
+  return {
+    orderId,
     subscriberOptIn: subscribeToUpdates ? "yes" : "no",
     customerEmail: checkoutDetails.email,
     firstName: checkoutDetails.firstName,
@@ -202,9 +375,9 @@ async function getPayPalAccessToken() {
   return payload.access_token;
 }
 
-async function createPayPalOrder({ cartEntries, checkoutDetails, origin, serverOrigin }) {
+async function createPayPalOrder({ cartEntries, checkoutDetails, origin, serverOrigin, orderId }) {
   const accessToken = await getPayPalAccessToken();
-  const orderTotal = cartEntries.reduce((sum, entry) => sum + entry.unitAmount * entry.quantity, 0) / 100;
+  const orderTotal = getCartTotalAmount(cartEntries) / 100;
 
   const response = await fetch(`${paypalApiBaseUrl}/v2/checkout/orders`, {
     method: "POST",
@@ -221,7 +394,7 @@ async function createPayPalOrder({ cartEntries, checkoutDetails, origin, serverO
             brand_name: "Workhorse",
             user_action: "PAY_NOW",
             shipping_preference: "NO_SHIPPING",
-            return_url: `${serverOrigin}/api/paypal/return?origin=${encodeURIComponent(origin)}`,
+            return_url: `${serverOrigin}/api/paypal/return?origin=${encodeURIComponent(origin)}&localOrderId=${encodeURIComponent(orderId)}`,
             cancel_url: `${origin}/?checkout=cancel&view=checkout`,
           },
         },
@@ -229,7 +402,7 @@ async function createPayPalOrder({ cartEntries, checkoutDetails, origin, serverO
       purchase_units: [
         {
           description: "Workhorse order",
-          custom_id: checkoutDetails.email,
+          custom_id: orderId,
           amount: {
             currency_code: "EUR",
             value: orderTotal.toFixed(2),
@@ -266,7 +439,10 @@ async function createPayPalOrder({ cartEntries, checkoutDetails, origin, serverO
     throw new Error("PayPal did not return an approval URL.");
   }
 
-  return approvalLink;
+  return {
+    approvalUrl: approvalLink,
+    paypalOrderId: payload.id,
+  };
 }
 
 async function capturePayPalOrder(orderId) {
@@ -337,33 +513,55 @@ function parseCookies(cookieHeader = "") {
     }, {});
 }
 
-async function ensureAuthStore() {
-  await fs.mkdir(AUTH_STORE_DIR, { recursive: true });
+async function ensureDataStore() {
+  await fs.mkdir(DATA_STORE_DIR, { recursive: true });
 
   try {
-    await fs.access(AUTH_STORE_PATH);
+    await fs.access(DATA_STORE_PATH);
   } catch {
-    await fs.writeFile(AUTH_STORE_PATH, JSON.stringify(DEFAULT_AUTH_STORE, null, 2));
+    let initialStore = DEFAULT_DATA_STORE;
+
+    try {
+      const legacyRaw = await fs.readFile(LEGACY_AUTH_STORE_PATH, "utf8");
+      const legacyStore = JSON.parse(legacyRaw || "{}");
+      initialStore = normalizeDataStore(legacyStore);
+    } catch {
+      initialStore = DEFAULT_DATA_STORE;
+    }
+
+    await fs.writeFile(DATA_STORE_PATH, JSON.stringify(initialStore, null, 2));
   }
 }
 
-async function readAuthStore() {
-  await ensureAuthStore();
-  const raw = await fs.readFile(AUTH_STORE_PATH, "utf8");
-  const parsed = JSON.parse(raw || "{}");
-
+function normalizeDataStore(store = {}) {
   return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
-    subscribers: Array.isArray(parsed.subscribers) ? parsed.subscribers : [],
+    users: Array.isArray(store.users) ? store.users : [],
+    sessions: Array.isArray(store.sessions) ? store.sessions : [],
+    subscribers: Array.isArray(store.subscribers) ? store.subscribers : [],
+    orders: Array.isArray(store.orders) ? store.orders : [],
   };
 }
 
+async function readDataStore() {
+  await ensureDataStore();
+  const raw = await fs.readFile(DATA_STORE_PATH, "utf8");
+  const parsed = JSON.parse(raw || "{}");
+  return normalizeDataStore(parsed);
+}
+
+async function writeDataStore(store) {
+  await ensureDataStore();
+  const tempPath = `${DATA_STORE_PATH}.tmp`;
+  await fs.writeFile(tempPath, JSON.stringify(normalizeDataStore(store), null, 2));
+  await fs.rename(tempPath, DATA_STORE_PATH);
+}
+
+async function readAuthStore() {
+  return readDataStore();
+}
+
 async function writeAuthStore(store) {
-  await ensureAuthStore();
-  const tempPath = `${AUTH_STORE_PATH}.tmp`;
-  await fs.writeFile(tempPath, JSON.stringify(store, null, 2));
-  await fs.rename(tempPath, AUTH_STORE_PATH);
+  return writeDataStore(store);
 }
 
 async function hashPassword(password) {
@@ -645,12 +843,20 @@ app.post("/api/create-payment-intent", async (req, res) => {
     }
 
     const cartEntries = buildCartEntries(items);
-    const totalAmount = cartEntries.reduce((sum, entry) => sum + entry.unitAmount * entry.quantity, 0);
+    const totalAmount = getCartTotalAmount(cartEntries);
 
     if (subscribeToUpdates) {
       upsertSubscriber(store, normalizedCheckoutDetails);
-      await writeAuthStore(store);
     }
+
+    const order = createPendingOrder({
+      store,
+      cartEntries,
+      checkoutDetails: normalizedCheckoutDetails,
+      user,
+      subscribeToUpdates,
+      paymentProvider: "stripe",
+    });
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
@@ -658,16 +864,77 @@ app.post("/api/create-payment-intent", async (req, res) => {
       payment_method_types: ["card"],
       receipt_email: normalizedCheckoutDetails.email,
       description: "Workhorse order",
-      metadata: getOrderMetadata(normalizedCheckoutDetails, user, subscribeToUpdates),
+      metadata: getOrderMetadata(normalizedCheckoutDetails, user, subscribeToUpdates, order.id),
     });
 
-    return res.json({ clientSecret: paymentIntent.client_secret });
+    order.paymentIntentId = paymentIntent.id;
+    order.providerOrderId = paymentIntent.id;
+    order.paymentDetails = {
+      provider: "stripe",
+      providerPaymentId: paymentIntent.id,
+      status: paymentIntent.status,
+      clientSecretCreatedAt: new Date().toISOString(),
+    };
+    order.updatedAt = new Date().toISOString();
+    await writeAuthStore(store);
+
+    return res.json({ clientSecret: paymentIntent.client_secret, order: getOrderSummary(order) });
   } catch (error) {
     return res.status(400).json({
       error:
         error instanceof Error
           ? error.message
           : "Unable to initialize the card payment.",
+    });
+  }
+});
+
+app.post("/api/orders/confirm-stripe", async (req, res) => {
+  try {
+    const orderId = String(req.body?.orderId || "").trim();
+    const paymentIntentId = String(req.body?.paymentIntentId || "").trim();
+
+    if (!orderId || !paymentIntentId) {
+      return res.status(400).json({ error: "Missing the order or payment confirmation details." });
+    }
+
+    if (!stripe) {
+      return res.status(500).json({
+        error: "Stripe is not configured yet. Add STRIPE_SECRET_KEY to your .env file.",
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status !== "succeeded") {
+      return res.status(400).json({ error: "Card payment has not completed yet." });
+    }
+
+    const store = await readAuthStore();
+    const order = findOrder(store, { orderId, paymentIntentId });
+
+    if (!order || order.paymentIntentId !== paymentIntentId) {
+      return res.status(404).json({ error: "Unable to find that order." });
+    }
+
+    if (order.status !== "paid") {
+      markOrderPaid(order, {
+        provider: "stripe",
+        providerPaymentId: paymentIntent.id,
+        amountReceived: paymentIntent.amount_received,
+        status: paymentIntent.status,
+        source: "client_confirmation",
+      });
+      await writeAuthStore(store);
+    }
+
+    return res.json({ order: getOrderSummary(order) });
+  } catch (error) {
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to confirm the card payment.",
     });
   }
 });
@@ -701,18 +968,36 @@ app.post("/api/create-checkout-session", async (req, res) => {
 
     if (subscribeToUpdates) {
       upsertSubscriber(store, normalizedCheckoutDetails);
-      await writeAuthStore(store);
     }
 
     if (paymentMethod === "paypal") {
-      const approvalUrl = await createPayPalOrder({
+      const order = createPendingOrder({
+        store,
+        cartEntries,
+        checkoutDetails: normalizedCheckoutDetails,
+        user,
+        subscribeToUpdates,
+        paymentProvider: "paypal",
+      });
+
+      const paypalOrder = await createPayPalOrder({
         cartEntries,
         checkoutDetails: normalizedCheckoutDetails,
         origin,
         serverOrigin,
+        orderId: order.id,
       });
 
-      return res.json({ url: approvalUrl });
+      order.providerOrderId = paypalOrder.paypalOrderId;
+      order.paymentDetails = {
+        provider: "paypal",
+        providerPaymentId: paypalOrder.paypalOrderId,
+        status: "created",
+      };
+      order.updatedAt = new Date().toISOString();
+      await writeAuthStore(store);
+
+      return res.json({ url: paypalOrder.approvalUrl, order: getOrderSummary(order) });
     }
 
     return res.status(400).json({
@@ -734,16 +1019,46 @@ app.get("/api/paypal/return", async (req, res) => {
       ? req.query.origin
       : process.env.PUBLIC_SITE_URL || "http://localhost:5173";
   const orderId = String(req.query.token || req.query.orderId || "").trim();
+  const localOrderId = String(req.query.localOrderId || "").trim();
 
   if (!orderId) {
     return res.redirect(`${origin}/?checkout=cancel&view=checkout`);
   }
 
   try {
-    await capturePayPalOrder(orderId);
+    const capture = await capturePayPalOrder(orderId);
+    const store = await readAuthStore();
+    const order = findOrder(store, { orderId: localOrderId, providerOrderId: orderId });
+
+    if (order && order.status !== "paid") {
+      markOrderPaid(order, {
+        provider: "paypal",
+        providerPaymentId: orderId,
+        status: capture?.status || "COMPLETED",
+        captureId: capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id || "",
+        source: "paypal_return",
+      });
+      await writeAuthStore(store);
+    }
+
     return res.redirect(`${origin}/?checkout=success&provider=paypal`);
   } catch (error) {
     console.error("PayPal capture failed:", error);
+    try {
+      const store = await readAuthStore();
+      const order = findOrder(store, { orderId: localOrderId, providerOrderId: orderId });
+      if (order && order.status !== "paid") {
+        markOrderFailed(order, {
+          provider: "paypal",
+          providerPaymentId: orderId,
+          status: "capture_failed",
+          source: "paypal_return",
+        });
+        await writeAuthStore(store);
+      }
+    } catch (storeError) {
+      console.error("Unable to update failed PayPal order:", storeError);
+    }
     return res.redirect(`${origin}/?checkout=cancel&view=checkout`);
   }
 });

@@ -1498,7 +1498,7 @@ function OrderSuccessPage({ onContinueShopping }) {
         <p className="mb-4 text-[11px] uppercase tracking-[0.24em]">Payment complete</p>
         <h1 className="workhorse-serif mb-6 text-4xl tracking-[0.08em] sm:text-5xl">Thank you</h1>
         <p className="mb-10 max-w-xl text-sm leading-7 text-black/75">
-          Payment completed successfully. You can connect this next to order emails, inventory updates, or webhooks whenever you are ready.
+          Payment completed successfully. Your order has been recorded.
         </p>
         <button
           onClick={onContinueShopping}
@@ -2290,7 +2290,10 @@ export default function App() {
       throw new Error(payload.error || "Unable to initialize the card payment.");
     }
 
-    return payload.clientSecret;
+    return {
+      clientSecret: payload.clientSecret,
+      orderId: payload.order?.id || "",
+    };
   };
 
   const handleStripePayment = async ({ stripe, cardElement }) => {
@@ -2303,7 +2306,7 @@ export default function App() {
     setCheckoutState({ loading: true, error: "" });
 
     try {
-      const clientSecret = await createStripePaymentIntent(details);
+      const { clientSecret, orderId } = await createStripePaymentIntent(details);
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
@@ -2321,6 +2324,24 @@ export default function App() {
 
       if (result.paymentIntent?.status !== "succeeded") {
         throw new Error("Card payment did not complete.");
+      }
+
+      const confirmationResponse = await fetch("/api/orders/confirm-stripe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          orderId,
+          paymentIntentId: result.paymentIntent.id,
+        }),
+      });
+
+      const confirmationPayload = await confirmationResponse.json();
+
+      if (!confirmationResponse.ok) {
+        throw new Error(confirmationPayload.error || "Payment completed, but the order could not be recorded.");
       }
 
       setCartItems([]);

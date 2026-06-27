@@ -22,6 +22,7 @@ Set these in the Render dashboard before the first real payment test:
 - `SERVER_PUBLIC_URL`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
 - `PAYPAL_CLIENT_ID`
 - `PAYPAL_CLIENT_SECRET`
 
@@ -41,9 +42,38 @@ Keep the domain registered at Squarespace. In Squarespace DNS settings:
 
 Do not cancel Squarespace before the new site is live.
 
-## 5. Important data note
+## 5. Persistent data
 
-This app currently stores account and subscriber data in a JSON file. On Render, local storage is ephemeral unless you attach a persistent disk or move this data to a database.
+The Render blueprint attaches a persistent disk at:
 
-For a first deployment, the app will run without a database.
-For real customer accounts, the next step should be migrating auth and subscriber storage to a database.
+```text
+/var/data
+```
+
+The app writes its production data file to:
+
+```text
+/var/data/workhorse/workhorse-store.json
+```
+
+That file stores users, sessions, subscribers, and order records. Keep the disk attached before accepting real payments, otherwise order/account data can be lost on deploy or restart.
+
+For higher traffic later, this file-backed store can be migrated to Postgres without changing the checkout UI.
+
+## 6. Stripe webhook
+
+After adding live Stripe keys, create a Stripe webhook endpoint pointing to:
+
+```text
+https://yourdomain.com/api/stripe/webhook
+```
+
+Listen for:
+
+```text
+payment_intent.succeeded
+payment_intent.payment_failed
+payment_intent.canceled
+```
+
+Then set the webhook signing secret in Render as `STRIPE_WEBHOOK_SECRET`.

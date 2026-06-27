@@ -5,6 +5,10 @@ services:
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /healthz
+    disk:
+      name: workhorse-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,11 +20,13 @@ services:
         sync: false
       - key: STRIPE_PUBLISHABLE_KEY
         sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
       - key: PAYPAL_ENVIRONMENT
         value: sandbox
-      - key: AUTH_STORE_DIR
-        value: /tmp/workhorse
+      - key: WORKHORSE_DATA_DIR
+        value: /var/data/workhorse
