@@ -22,6 +22,14 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ORDER_FROM_EMAIL
+        sync: false
+      - key: ORDER_NOTIFY_EMAIL
+        sync: false
+      - key: ORDER_REPLY_TO_EMAIL
+        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET

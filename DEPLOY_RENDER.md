@@ -23,6 +23,10 @@ Set these in the Render dashboard before the first real payment test:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY`
+- `ORDER_FROM_EMAIL`
+- `ORDER_NOTIFY_EMAIL`
+- `ORDER_REPLY_TO_EMAIL`
 - `PAYPAL_CLIENT_ID`
 - `PAYPAL_CLIENT_SECRET`
 
@@ -77,3 +81,18 @@ payment_intent.canceled
 ```
 
 Then set the webhook signing secret in Render as `STRIPE_WEBHOOK_SECRET`.
+
+## 7. Order emails
+
+The server sends transactional order emails through Resend after an order is marked paid.
+
+Recommended Render environment variables:
+
+```text
+RESEND_API_KEY=re_...
+ORDER_FROM_EMAIL=Jon Jaff <orders@jonjaff.com>
+ORDER_NOTIFY_EMAIL=Jonjaff623@gmail.com
+ORDER_REPLY_TO_EMAIL=Jonjaff623@gmail.com
+```
+
+Verify `jonjaff.com` in Resend first, then add the DNS records Resend provides. Paid orders are still recorded if Resend is missing or temporarily unavailable, but customer/owner emails will not send until the key and verified sender are configured.

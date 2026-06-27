@@ -17,6 +17,10 @@ const port = Number(process.env.PORT || 4242);
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+const resendApiKey = process.env.RESEND_API_KEY || "";
+const orderFromEmail = process.env.ORDER_FROM_EMAIL || "Jon Jaff <orders@jonjaff.com>";
+const orderNotifyEmail = process.env.ORDER_NOTIFY_EMAIL || "Jonjaff623@gmail.com";
+const orderReplyToEmail = process.env.ORDER_REPLY_TO_EMAIL || orderNotifyEmail;
 const paypalClientId = process.env.PAYPAL_CLIENT_ID;
 const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
 const paypalEnvironment = (process.env.PAYPAL_ENVIRONMENT || "sandbox").toLowerCase();
@@ -53,6 +57,10 @@ if (!paypalClientId || !paypalClientSecret) {
   console.warn("Missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET. PayPal checkout endpoints will return an error until they are set.");
 }
 
+if (!resendApiKey) {
+  console.warn("Missing RESEND_API_KEY. Paid orders will be recorded, but order emails will not be sent.");
+}
+
 app.set("trust proxy", 1);
 
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
@@ -87,6 +95,10 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
           source: "stripe_webhook",
         });
         await writeDataStore(store);
+      }
+
+      if (order?.status === "paid") {
+        await sendPaidOrderEmails(store, order);
       }
     }
 
@@ -279,6 +291,17 @@ function appendOrderEvent(order, status, details = {}) {
   });
 }
 
+function recordOrderEvent(order, event, details = {}) {
+  const now = new Date().toISOString();
+  order.updatedAt = now;
+  order.events = Array.isArray(order.events) ? order.events : [];
+  order.events.push({
+    event,
+    details,
+    createdAt: now,
+  });
+}
+
 function findOrder(store, { orderId = "", providerOrderId = "", paymentIntentId = "" } = {}) {
   return store.orders.find((order) => {
     return (
@@ -316,6 +339,264 @@ function getOrderSummary(order) {
     items: order.items,
     customerEmail: order.customerEmail,
   };
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatCurrency(amount = 0, currency = "eur") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: String(currency || "eur").toUpperCase(),
+  }).format(Number(amount || 0) / 100);
+}
+
+function getCustomerName(checkoutDetails = {}) {
+  return `${checkoutDetails.firstName || ""} ${checkoutDetails.lastName || ""}`.trim();
+}
+
+function getShippingAddressLines(checkoutDetails = {}) {
+  return [
+    `${checkoutDetails.street || ""} ${checkoutDetails.streetNumber || ""}`.trim(),
+    [checkoutDetails.postalCode, checkoutDetails.stateRegion].filter(Boolean).join(" "),
+    checkoutDetails.country,
+  ].filter(Boolean);
+}
+
+function getPhoneNumber(checkoutDetails = {}) {
+  return [checkoutDetails.phoneCountryCode, checkoutDetails.phoneNumber].filter(Boolean).join(" ");
+}
+
+function getOrderItemsText(order) {
+  return order.items
+    .map((item) => {
+      return `${item.title} x ${item.quantity} - ${formatCurrency(item.totalAmount, order.currency)}`;
+    })
+    .join("\n");
+}
+
+function getOrderItemsHtml(order) {
+  return order.items
+    .map(
+      (item) => `
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eeeeee;">
+            <strong>${escapeHtml(item.title)}</strong><br />
+            <span style="color: #666666; font-size: 12px;">${escapeHtml(item.category || "")}${item.code ? ` / ${escapeHtml(item.code)}` : ""}</span>
+          </td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eeeeee; text-align: center;">${escapeHtml(item.quantity)}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eeeeee; text-align: right;">${escapeHtml(formatCurrency(item.totalAmount, order.currency))}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function buildCustomerOrderEmail(order) {
+  const addressLines = getShippingAddressLines(order.checkoutDetails);
+  const customerName = getCustomerName(order.checkoutDetails) || "there";
+  const orderTotal = formatCurrency(order.amountTotal, order.currency);
+  const addressText = addressLines.join("\n");
+  const itemsText = getOrderItemsText(order);
+
+  return {
+    subject: `Order received - ${order.id.slice(0, 8)}`,
+    text: [
+      `Hi ${customerName},`,
+      "",
+      "Thank you. Your order has been received and payment is confirmed.",
+      "",
+      `Order ID: ${order.id}`,
+      "",
+      "Items:",
+      itemsText,
+      "",
+      `Total: ${orderTotal}`,
+      "",
+      "Shipping address:",
+      addressText,
+      "",
+      "If anything looks wrong, reply to this email.",
+      "",
+      "Jon Jaff",
+    ].join("\n"),
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.5;">
+        <p>Hi ${escapeHtml(customerName)},</p>
+        <p>Thank you. Your order has been received and payment is confirmed.</p>
+        <p style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;">Order ${escapeHtml(order.id)}</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+          <thead>
+            <tr>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: left;">Item</th>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: center;">Qty</th>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>${getOrderItemsHtml(order)}</tbody>
+        </table>
+        <p><strong>Total:</strong> ${escapeHtml(orderTotal)}</p>
+        <p><strong>Shipping address:</strong><br />${addressLines.map(escapeHtml).join("<br />")}</p>
+        <p>If anything looks wrong, reply to this email.</p>
+        <p>Jon Jaff</p>
+      </div>
+    `,
+  };
+}
+
+function buildOwnerOrderEmail(order) {
+  const addressLines = getShippingAddressLines(order.checkoutDetails);
+  const customerName = getCustomerName(order.checkoutDetails);
+  const phone = getPhoneNumber(order.checkoutDetails);
+  const orderTotal = formatCurrency(order.amountTotal, order.currency);
+  const itemsText = getOrderItemsText(order);
+
+  return {
+    subject: `New paid order - ${customerName || order.customerEmail}`,
+    text: [
+      "New paid order",
+      "",
+      `Order ID: ${order.id}`,
+      `Payment: ${order.paymentProvider}`,
+      `Total: ${orderTotal}`,
+      "",
+      "Customer:",
+      customerName,
+      order.customerEmail,
+      phone,
+      "",
+      "Shipping address:",
+      addressLines.join("\n"),
+      "",
+      "Items:",
+      itemsText,
+    ].join("\n"),
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.5;">
+        <h1 style="font-size: 24px; font-weight: 400;">New paid order</h1>
+        <p style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;">${escapeHtml(order.id)}</p>
+        <p><strong>Payment:</strong> ${escapeHtml(order.paymentProvider || "")}</p>
+        <p><strong>Total:</strong> ${escapeHtml(orderTotal)}</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+          <thead>
+            <tr>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: left;">Item</th>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: center;">Qty</th>
+              <th style="padding: 0 0 8px; border-bottom: 1px solid #000000; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>${getOrderItemsHtml(order)}</tbody>
+        </table>
+        <p><strong>Customer:</strong><br />
+          ${escapeHtml(customerName)}<br />
+          ${escapeHtml(order.customerEmail)}<br />
+          ${escapeHtml(phone)}
+        </p>
+        <p><strong>Shipping address:</strong><br />${addressLines.map(escapeHtml).join("<br />")}</p>
+      </div>
+    `,
+  };
+}
+
+async function sendResendEmail({ to, subject, html, text }) {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: orderFromEmail,
+      to: Array.isArray(to) ? to : [to],
+      reply_to: orderReplyToEmail,
+      subject,
+      html,
+      text,
+    }),
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.message ||
+        payload?.error?.message ||
+        payload?.name ||
+        "Unable to send order email."
+    );
+  }
+
+  return payload;
+}
+
+async function sendPaidOrderEmails(store, order) {
+  if (!order || order.status !== "paid") {
+    return;
+  }
+
+  order.emailStatus = order.emailStatus || {};
+
+  if (order.emailStatus.customerSentAt && order.emailStatus.ownerSentAt) {
+    return;
+  }
+
+  order.emailStatus.lastAttemptAt = new Date().toISOString();
+
+  if (!resendApiKey) {
+    order.emailStatus.lastError = "Missing RESEND_API_KEY.";
+    await writeDataStore(store);
+    return;
+  }
+
+  const customerEmail = normalizeEmail(order.customerEmail);
+
+  if (!order.emailStatus.customerSentAt && isValidEmail(customerEmail)) {
+    try {
+      const customerMessage = buildCustomerOrderEmail(order);
+      const result = await sendResendEmail({
+        to: customerEmail,
+        ...customerMessage,
+      });
+      order.emailStatus.customerSentAt = new Date().toISOString();
+      order.emailStatus.customerMessageId = result?.id || result?.data?.id || "";
+    } catch (error) {
+      order.emailStatus.customerLastError =
+        error instanceof Error ? error.message : "Unable to send customer email.";
+    }
+  }
+
+  if (!order.emailStatus.ownerSentAt && isValidEmail(orderNotifyEmail)) {
+    try {
+      const ownerMessage = buildOwnerOrderEmail(order);
+      const result = await sendResendEmail({
+        to: orderNotifyEmail,
+        ...ownerMessage,
+      });
+      order.emailStatus.ownerSentAt = new Date().toISOString();
+      order.emailStatus.ownerMessageId = result?.id || result?.data?.id || "";
+    } catch (error) {
+      order.emailStatus.ownerLastError =
+        error instanceof Error ? error.message : "Unable to send owner email.";
+    }
+  }
+
+  if (order.emailStatus.customerSentAt || order.emailStatus.ownerSentAt) {
+    order.emailStatus.lastError = "";
+  }
+
+  order.updatedAt = new Date().toISOString();
+  recordOrderEvent(order, "email_attempted", {
+    customerSent: Boolean(order.emailStatus.customerSentAt),
+    ownerSent: Boolean(order.emailStatus.ownerSentAt),
+  });
+
+  await writeDataStore(store);
 }
 
 function getOrderMetadata(checkoutDetails, user, subscribeToUpdates, orderId) {
@@ -928,6 +1209,8 @@ app.post("/api/orders/confirm-stripe", async (req, res) => {
       await writeAuthStore(store);
     }
 
+    await sendPaidOrderEmails(store, order);
+
     return res.json({ order: getOrderSummary(order) });
   } catch (error) {
     return res.status(400).json({
@@ -1039,6 +1322,10 @@ app.get("/api/paypal/return", async (req, res) => {
         source: "paypal_return",
       });
       await writeAuthStore(store);
+    }
+
+    if (order?.status === "paid") {
+      await sendPaidOrderEmails(store, order);
     }
 
     return res.redirect(`${origin}/?checkout=success&provider=paypal`);
