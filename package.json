@@ -12,6 +12,7 @@
         "dev:server": "node server.js",
         "build": "vite build",
         "preview": "vite preview",
+        "audit:products": "node scripts/audit_products.mjs",
         "start": "node server.js",
         "generate:drawings-thumbs": "\"C:\\Users\\Eneo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe\" scripts/generate_thumbnails.py public/products/drawings"
     },

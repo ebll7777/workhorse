@@ -18,9 +18,6 @@ const logoImageSrc = "/products/banner.webp";
 const footerImageSrc = "/products/Workhorse.gmbh.webp";
 const footerImageAnimatedSrc = "/output-onlinegiftools.gif";
 const aboutImageSrc = "/about-jonjaff.webp";
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-const googleMapsScriptId = "workhorse-google-maps-script";
-let googleMapsPlacesPromise;
 
 const fontStyles = `
   .workhorse-sans,
@@ -50,86 +47,106 @@ const stripeCardElementOptions = {
   },
 };
 
-function loadGoogleMapsPlacesLibrary() {
-  if (!googleMapsApiKey || typeof window === "undefined") {
-    return Promise.resolve(null);
-  }
+const siteInfoPages = {
+  shipping: {
+    title: "Shipping",
+    eyebrow: "Site Information",
+    sections: [
+      {
+        heading: "Shipping Area",
+        body: "Orders are prepared from Berlin, Germany. Shipping availability and final delivery timing may depend on the destination, artwork size, and carrier requirements.",
+      },
+      {
+        heading: "Shipping Cost",
+        body: "Shipping is calculated after order details are reviewed. If a listed checkout price does not include final shipping, the buyer will be contacted before dispatch.",
+      },
+      {
+        heading: "Artwork Handling",
+        body: "Original works and fragile pieces are packed carefully before shipment. Larger works may require custom packaging or coordinated delivery.",
+      },
+    ],
+  },
+  returns: {
+    title: "Returns",
+    eyebrow: "Site Information",
+    sections: [
+      {
+        heading: "Return Requests",
+        body: "If something arrives damaged or incorrect, contact Jonjaff623@gmail.com with the order details and photos as soon as possible.",
+      },
+      {
+        heading: "Original Works",
+        body: "Original artworks and made-to-order pieces may need individual handling. Return options can depend on the item condition, shipping route, and local rules.",
+      },
+      {
+        heading: "Refund Timing",
+        body: "Approved refunds are processed through the original payment method after the return or issue is reviewed.",
+      },
+    ],
+  },
+  privacy: {
+    title: "Privacy",
+    eyebrow: "Site Information",
+    sections: [
+      {
+        heading: "Information Collected",
+        body: "Checkout collects contact details, shipping details, selected items, and payment status so orders can be fulfilled. Card details are handled by Stripe and are not stored by this website.",
+      },
+      {
+        heading: "Updates",
+        body: "If the updates checkbox is selected, the submitted contact details may be saved for future updates and notifications.",
+      },
+      {
+        heading: "Contact",
+        body: "Questions about stored information can be sent to Jonjaff623@gmail.com.",
+      },
+    ],
+  },
+  terms: {
+    title: "Terms",
+    eyebrow: "Site Information",
+    sections: [
+      {
+        heading: "Catalog",
+        body: "Product images, dimensions, prices, and availability are shown as accurately as possible, but small differences can occur between screen display and the physical work.",
+      },
+      {
+        heading: "Orders",
+        body: "An order is considered received after payment succeeds and the order is recorded. If an item becomes unavailable, the buyer will be contacted for a replacement, refund, or cancellation.",
+      },
+      {
+        heading: "Payment",
+        body: "Card payments are processed by Stripe. PayPal may be offered when configured for live payments.",
+      },
+    ],
+  },
+  impressum: {
+    title: "Impressum",
+    eyebrow: "Site Information",
+    sections: [
+      {
+        heading: "Responsible Contact",
+        body: "Jonathan Jaffrey, Berlin, Germany. Email: Jonjaff623@gmail.com.",
+      },
+      {
+        heading: "Business Details",
+        body: "Add any required business registration, VAT, address, and legally required publisher details here before final commercial launch.",
+      },
+      {
+        heading: "Note",
+        body: "This page is prepared as a launch structure and should be reviewed before relying on it as legal compliance text.",
+      },
+    ],
+  },
+};
 
-  if (window.google?.maps?.places) {
-    return Promise.resolve(window.google.maps);
-  }
-
-  if (googleMapsPlacesPromise) {
-    return googleMapsPlacesPromise;
-  }
-
-  googleMapsPlacesPromise = new Promise((resolve, reject) => {
-    const existingScript = document.getElementById(googleMapsScriptId);
-
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(window.google?.maps ?? null), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Unable to load Google Maps.")), { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = googleMapsScriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(window.google?.maps ?? null);
-    script.onerror = () => reject(new Error("Unable to load Google Maps."));
-    document.head.appendChild(script);
-  });
-
-  return googleMapsPlacesPromise;
-}
-
-function getAddressComponent(components, type) {
-  return components.find((component) => component.types?.includes(type));
-}
-
-function extractCheckoutAddressFromPlace(place) {
-  const components = place?.address_components ?? [];
-  const streetNumber = getAddressComponent(components, "street_number")?.long_name ?? "";
-  const route = getAddressComponent(components, "route")?.long_name ?? "";
-  const postalCode = getAddressComponent(components, "postal_code")?.long_name ?? "";
-  const country = getAddressComponent(components, "country")?.long_name ?? "";
-  const stateRegion =
-    getAddressComponent(components, "administrative_area_level_1")?.long_name ??
-    getAddressComponent(components, "administrative_area_level_2")?.long_name ??
-    "";
-  const formattedAddress = String(place?.formatted_address || place?.name || "").trim();
-  const fallbackAddress = [streetNumber, route, postalCode, stateRegion, country].filter(Boolean).join(", ");
-  const addressLine = formattedAddress || fallbackAddress;
-
-  const updates = {};
-
-  if (addressLine) {
-    updates.addressLine = addressLine;
-  }
-  if (route) {
-    updates.street = route;
-  }
-  if (streetNumber) {
-    updates.streetNumber = streetNumber;
-  }
-  if (postalCode) {
-    updates.postalCode = postalCode;
-  }
-  if (country) {
-    updates.country = country;
-    const dialingEntry = COUNTRY_DIALING_OPTIONS.find((entry) => entry.country === country);
-    if (dialingEntry?.code) {
-      updates.phoneCountryCode = dialingEntry.code;
-    }
-  }
-  if (stateRegion) {
-    updates.stateRegion = stateRegion;
-  }
-
-  return updates;
-}
+const siteInfoLinks = [
+  { key: "shipping", label: "Shipping" },
+  { key: "returns", label: "Returns" },
+  { key: "privacy", label: "Privacy" },
+  { key: "terms", label: "Terms" },
+  { key: "impressum", label: "Impressum" },
+];
 
 const COUNTRY_OPTIONS = [
   "Afghanistan",
@@ -1517,6 +1534,45 @@ function OrderSuccessPage({ onContinueShopping }) {
   );
 }
 
+function SiteInfoPage({ page, onOpenPage }) {
+  if (!page) return null;
+
+  return (
+    <section className="min-h-[calc(100svh-92px)] bg-white sm:min-h-[calc(100vh-97px)]">
+      <div className="mx-auto max-w-4xl px-5 py-9 sm:px-8 sm:py-14 lg:px-10">
+        <div className="space-y-8">
+          <div className="space-y-4 text-center">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-black/60">{page.eyebrow}</p>
+            <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-6xl">{page.title}</h1>
+          </div>
+
+          <div className="mx-auto max-w-2xl space-y-7 text-sm leading-7 text-black/75">
+            {page.sections.map((section) => (
+              <section key={section.heading} className="space-y-2">
+                <h2 className="text-[11px] uppercase tracking-[0.22em] text-black">{section.heading}</h2>
+                <p>{section.body}</p>
+              </section>
+            ))}
+          </div>
+
+          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 pt-6 text-[10px] uppercase tracking-[0.2em] text-black/60">
+            {siteInfoLinks.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onOpenPage(item.key)}
+                className="transition hover:text-black"
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   useEffect(() => {
     document.title = "Jonathan Jaffrey";
@@ -1525,6 +1581,7 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentView, setCurrentView] = useState("shop");
+  const [siteInfoPageKey, setSiteInfoPageKey] = useState("shipping");
   const [zoomLevel, setZoomLevel] = useState(0);
   const [zoomDirection, setZoomDirection] = useState("in");
   const [pendingRowIndex, setPendingRowIndex] = useState(null);
@@ -1907,6 +1964,7 @@ export default function App() {
 
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
+    setSelectedProduct(null);
     setCurrentView("shop");
     window.scrollTo({ top: 0 });
     if (shopViewportRef.current) {
@@ -1924,6 +1982,13 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
 
+  const openSiteInfoPage = (pageKey) => {
+    setSelectedProduct(null);
+    setSiteInfoPageKey(pageKey);
+    setCurrentView("info");
+    window.scrollTo({ top: 0 });
+  };
+
   const openCart = () => {
     setSelectedProduct(null);
     setCurrentView("checkout");
@@ -1938,6 +2003,7 @@ export default function App() {
   };
 
   const continueShopping = () => {
+    setSelectedProduct(null);
     setCurrentView("shop");
     setCheckoutState({ loading: false, error: "" });
     window.scrollTo({ top: 0 });
@@ -2480,6 +2546,8 @@ export default function App() {
   const viewKey =
     currentView === "about"
       ? "about"
+      : currentView === "info"
+        ? `info-${siteInfoPageKey}`
       : currentView === "cart"
           ? "cart"
           : currentView === "checkout"
@@ -2726,6 +2794,10 @@ export default function App() {
             <motion.div key={viewKey} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
               <OrderSuccessPage onContinueShopping={continueShopping} />
             </motion.div>
+          ) : currentView === "info" ? (
+            <motion.div key={viewKey} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
+              <SiteInfoPage page={siteInfoPages[siteInfoPageKey]} onOpenPage={openSiteInfoPage} />
+            </motion.div>
           ) : (
             <motion.section
               key={viewKey}
@@ -2790,7 +2862,7 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="flex items-center justify-center px-4 py-4 sm:px-6">
+      <footer className="flex flex-col items-center justify-center gap-3 px-4 py-4 sm:px-6">
         <img
           src={isFooterAnimated ? footerImageAnimatedSrc : footerImageSrc}
           alt="Workhorse"
@@ -2798,6 +2870,18 @@ export default function App() {
           onMouseLeave={() => setIsFooterAnimated(false)}
           className="h-auto w-full max-w-[3.6rem] object-contain sm:max-w-[4.8rem]"
         />
+        <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[9px] uppercase tracking-[0.2em] text-black/45 sm:text-[10px]">
+          {siteInfoLinks.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => openSiteInfoPage(item.key)}
+              className="transition hover:text-black"
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </footer>
     </div>
   );

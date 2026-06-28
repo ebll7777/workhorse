@@ -30,6 +30,8 @@ services:
         sync: false
       - key: ORDER_REPLY_TO_EMAIL
         sync: false
+      - key: ADMIN_EXPORT_TOKEN
+        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET

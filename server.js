@@ -22,6 +22,7 @@ const resendApiKey = process.env.RESEND_API_KEY || "";
 const orderFromEmail = process.env.ORDER_FROM_EMAIL || "Jon Jaff <orders@jonjaff.com>";
 const orderNotifyEmail = process.env.ORDER_NOTIFY_EMAIL || "Jonjaff623@gmail.com";
 const orderReplyToEmail = process.env.ORDER_REPLY_TO_EMAIL || orderNotifyEmail;
+const adminExportToken = process.env.ADMIN_EXPORT_TOKEN || "";
 const paypalClientId = process.env.PAYPAL_CLIENT_ID;
 const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
 const paypalEnvironment = (process.env.PAYPAL_ENVIRONMENT || "sandbox").toLowerCase();
@@ -159,6 +160,42 @@ function sanitizeUser(user) {
     email: user.email,
     address: user.address,
     createdAt: user.createdAt,
+  };
+}
+
+function getRequestToken(req) {
+  const authorization = String(req.headers.authorization || "");
+  if (authorization.toLowerCase().startsWith("bearer ")) {
+    return authorization.slice(7).trim();
+  }
+
+  return String(req.query?.token || "").trim();
+}
+
+function timingSafeTokenMatches(inputToken, expectedToken) {
+  if (!inputToken || !expectedToken) {
+    return false;
+  }
+
+  const input = Buffer.from(inputToken);
+  const expected = Buffer.from(expectedToken);
+
+  return input.length === expected.length && crypto.timingSafeEqual(input, expected);
+}
+
+function buildAdminExport(store) {
+  const normalizedStore = normalizeDataStore(store);
+
+  return {
+    exportedAt: new Date().toISOString(),
+    counts: {
+      orders: normalizedStore.orders.length,
+      subscribers: normalizedStore.subscribers.length,
+      users: normalizedStore.users.length,
+    },
+    orders: normalizedStore.orders,
+    subscribers: normalizedStore.subscribers,
+    users: normalizedStore.users.map(sanitizeUser),
   };
 }
 
@@ -1041,6 +1078,24 @@ app.get("/api/auth/session", async (req, res) => {
     return res.json({ user: user ? sanitizeUser(user) : null });
   } catch {
     return res.status(500).json({ error: "Unable to load the current session." });
+  }
+});
+
+app.get("/api/admin/export", async (req, res) => {
+  if (!adminExportToken) {
+    return res.status(404).json({ error: "Export is not configured." });
+  }
+
+  if (!timingSafeTokenMatches(getRequestToken(req), adminExportToken)) {
+    return res.status(401).json({ error: "Unauthorized." });
+  }
+
+  try {
+    const store = await readDataStore();
+    res.setHeader("Cache-Control", "no-store");
+    return res.json(buildAdminExport(store));
+  } catch {
+    return res.status(500).json({ error: "Unable to export store data right now." });
   }
 });
 
