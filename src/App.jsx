@@ -1100,7 +1100,7 @@ function CartPage({ cartItems, onBack, onUpdateQuantity, onRemoveItem, onCheckou
                   key={item.id}
                   className="grid grid-cols-[96px_1fr] gap-4 py-5 sm:grid-cols-[120px_1fr] sm:gap-6"
                 >
-                  <div className="flex h-[106px] items-center justify-center bg-white sm:h-[141px]">
+                  <div className="flex h-[122px] items-center justify-center bg-white sm:h-[162px]">
                     <ProductImage
                       src={item.thumbnail || item.image}
                       fallbackSrc={item.fallbackThumbnail || item.fallbackImage}
@@ -1433,7 +1433,7 @@ function CheckoutPage({
             <div className="space-y-6 sm:space-y-8">
               {cartItems.map((item) => (
                 <div key={item.id} className="grid grid-cols-[64px_minmax(0,1fr)] items-start gap-3 text-[10px] uppercase tracking-[0.16em] sm:grid-cols-[72px_1fr_auto] sm:gap-4 sm:text-[11px] sm:tracking-[0.2em]">
-                  <div className="flex h-[70px] items-center justify-center bg-white sm:h-[79px]">
+                  <div className="flex h-[81px] items-center justify-center bg-white sm:h-[91px]">
                     <ProductImage
                       src={item.thumbnail || item.image}
                       fallbackSrc={item.fallbackThumbnail || item.fallbackImage}
@@ -1635,8 +1635,8 @@ export default function App() {
   const rowHeightStyle = {
     transformOrigin: "50% 50%",
     height: isDenseGrid
-      ? `calc(((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen} - ${isMobileViewport ? "8px" : "14px"}) * 1.1)`
-      : `calc(((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen}) * 1.1)`,
+      ? `calc(((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen} - ${isMobileViewport ? "8px" : "14px"}) * 1.265)`
+      : `calc(((100svh - ${isMobileViewport ? "124px" : "96px"}) / ${rowsPerScreen}) * 1.265)`,
   };
   const rowRenderStyle = {
     ...rowHeightStyle,
