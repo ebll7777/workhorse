@@ -579,6 +579,12 @@ function sortItemsAlphabetically(items) {
   );
 }
 
+function sortHomeGridItems(items) {
+  const paintings = items.filter((item) => item.category === "Paintings");
+  const rest = items.filter((item) => item.category !== "Paintings");
+  return [...sortItemsAlphabetically(paintings), ...sortItemsAlphabetically(rest)];
+}
+
 const minArtworkZoom = 1;
 const maxArtworkZoom = 4;
 
@@ -1598,10 +1604,10 @@ export default function App() {
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === "All") {
-      return sortItemsAlphabetically(products);
+      return sortHomeGridItems(products);
     }
 
-    return products.filter((item) => item.category === activeFilter);
+    return sortItemsAlphabetically(products.filter((item) => item.category === activeFilter));
   }, [activeFilter]);
 
   const stripePromise = useMemo(() => {
