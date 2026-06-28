@@ -36,5 +36,9 @@ services:
         sync: false
       - key: PAYPAL_ENVIRONMENT
         value: sandbox
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        sync: false
       - key: WORKHORSE_DATA_DIR
         value: /var/data/workhorse

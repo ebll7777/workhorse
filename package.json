@@ -24,6 +24,7 @@
         "express": "^5.1.0",
         "framer-motion": "^12.9.4",
         "lucide-react": "^0.511.0",
+        "pg": "^8.22.0",
         "postcss": "^8.5.3",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",

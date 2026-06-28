@@ -5,6 +5,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
+import { Pool } from "pg";
 import Stripe from "stripe";
 import { products } from "./src/data/products.js";
 
@@ -28,12 +29,29 @@ const paypalApiBaseUrl =
   paypalEnvironment === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const productMap = new Map(products.map((product) => [product.id, product]));
+const databaseUrl = process.env.DATABASE_URL || "";
+const databaseSslMode = (process.env.DATABASE_SSL || "").toLowerCase();
+const databaseSsl =
+  databaseSslMode === "true" ||
+  databaseSslMode === "require" ||
+  /sslmode=require/i.test(databaseUrl)
+    ? { rejectUnauthorized: false }
+    : databaseSslMode === "false" || databaseSslMode === "disable"
+      ? false
+      : undefined;
+const databasePool = databaseUrl
+  ? new Pool({
+      connectionString: databaseUrl,
+      ...(databaseSsl === undefined ? {} : { ssl: databaseSsl }),
+    })
+  : null;
 
 const DATA_STORE_DIR = path.resolve(
   process.env.WORKHORSE_DATA_DIR || process.env.AUTH_STORE_DIR || path.join(__dirname, "data")
 );
 const DATA_STORE_PATH = path.join(DATA_STORE_DIR, "workhorse-store.json");
 const LEGACY_AUTH_STORE_PATH = path.join(DATA_STORE_DIR, "auth-store.json");
+const DATABASE_STORE_KEY = "primary";
 const AUTH_COOKIE_NAME = "workhorse_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const DEFAULT_DATA_STORE = {
@@ -795,6 +813,26 @@ function parseCookies(cookieHeader = "") {
 }
 
 async function ensureDataStore() {
+  if (databasePool) {
+    await databasePool.query(`
+      CREATE TABLE IF NOT EXISTS workhorse_store (
+        key text PRIMARY KEY,
+        data jsonb NOT NULL,
+        updated_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
+
+    await databasePool.query(
+      `
+        INSERT INTO workhorse_store (key, data)
+        VALUES ($1, $2::jsonb)
+        ON CONFLICT (key) DO NOTHING
+      `,
+      [DATABASE_STORE_KEY, JSON.stringify(DEFAULT_DATA_STORE)]
+    );
+    return;
+  }
+
   await fs.mkdir(DATA_STORE_DIR, { recursive: true });
 
   try {
@@ -825,6 +863,16 @@ function normalizeDataStore(store = {}) {
 
 async function readDataStore() {
   await ensureDataStore();
+
+  if (databasePool) {
+    const result = await databasePool.query(
+      "SELECT data FROM workhorse_store WHERE key = $1",
+      [DATABASE_STORE_KEY]
+    );
+
+    return normalizeDataStore(result.rows[0]?.data || DEFAULT_DATA_STORE);
+  }
+
   const raw = await fs.readFile(DATA_STORE_PATH, "utf8");
   const parsed = JSON.parse(raw || "{}");
   return normalizeDataStore(parsed);
@@ -832,6 +880,20 @@ async function readDataStore() {
 
 async function writeDataStore(store) {
   await ensureDataStore();
+
+  if (databasePool) {
+    await databasePool.query(
+      `
+        INSERT INTO workhorse_store (key, data, updated_at)
+        VALUES ($1, $2::jsonb, now())
+        ON CONFLICT (key)
+        DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+      `,
+      [DATABASE_STORE_KEY, JSON.stringify(normalizeDataStore(store))]
+    );
+    return;
+  }
+
   const tempPath = `${DATA_STORE_PATH}.tmp`;
   await fs.writeFile(tempPath, JSON.stringify(normalizeDataStore(store), null, 2));
   await fs.rename(tempPath, DATA_STORE_PATH);
