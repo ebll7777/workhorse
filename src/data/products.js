@@ -8,16 +8,31 @@ const productAsset = (category, filename) => {
   return encodeURI(`/products/${categoryFolder}/${filename}`);
 };
 
+const titleCaseWord = (word) =>
+  word
+    .split("-")
+    .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}` : part))
+    .join("-");
+
+const toTitleCase = (value) =>
+  value
+    .split(" ")
+    .map((word) => titleCaseWord(word))
+    .join(" ");
+
 const filenameToTitle = (filename) =>
-  filename
-    .replace(/\.[^/.]+$/, "")
-    .replace(/_/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  toTitleCase(
+    filename
+      .replace(/\.[^/.]+$/, "")
+      .replace(/_/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 
 const thumbFilename = (filename) => `${filename.replace(/\.[^/.]+$/, "")}.webp`;
 
 const defaultDrawingDetails = ["Pen on Paper", "21cm x 30cm"];
+const stickerDetails = ["Printed sticker", "Dimensions to be confirmed"];
 
 const drawingDetailOverrides = {
   "F-Word.png": ["Acrylic on Paper", "21cm x 30cm"],
@@ -117,8 +132,8 @@ export const products = [
     price: 8,
     image: productAsset("Stickers", "Sugar Hill Mandra.webp"),
     thumbnail: productAsset("Stickers", "thumbs/Sugar Hill Mandra.webp"),
-    description:
-      "Placeholder sticker description. Replace with your own product details, materials, and edition notes.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 2,
@@ -128,7 +143,8 @@ export const products = [
     price: 14,
     image: productAsset("Stickers", "Blonde.webp"),
     thumbnail: productAsset("Stickers", "thumbs/Blonde.webp"),
-    description: "Minimal sticker set placeholder for the Workhorse catalog.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 3,
@@ -155,7 +171,7 @@ export const products = [
   {
     id: 5,
     code: "FR-01",
-    title: "dance",
+    title: "Dance",
     category: "Furniture",
     price: 580,
     image: productAsset("Furniture", "dance.gif"),
@@ -217,7 +233,8 @@ export const products = [
     price: 6,
     image: productAsset("Stickers", "Charlie.webp"),
     thumbnail: productAsset("Stickers", "thumbs/Charlie.webp"),
-    description: "Replace this text with your own short product story.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 9,
@@ -227,27 +244,30 @@ export const products = [
     price: 6,
     image: productAsset("Stickers", "Guerilla.webp"),
     thumbnail: productAsset("Stickers", "thumbs/Guerilla.webp"),
-    description: "Replace this with your fourth sticker details.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 10,
     code: "ST-05",
-    title: "Help me",
+    title: "Help Me",
     category: "Stickers",
     price: 6,
     image: productAsset("Stickers", "Help me.webp"),
     thumbnail: productAsset("Stickers", "thumbs/Help me.webp"),
-    description: "Replace this with your fifth sticker details.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 11,
     code: "ST-06",
-    title: "POW!",
+    title: "Pow!",
     category: "Stickers",
     price: 6,
     image: productAsset("Stickers", "POW!.webp"),
     thumbnail: productAsset("Stickers", "thumbs/POW!.webp"),
-    description: "Replace this with your sixth sticker details.",
+    details: stickerDetails,
+    description: stickerDetails.join(". "),
   },
   {
     id: 6,
@@ -257,7 +277,7 @@ export const products = [
     price: 460,
     image: productAsset("Paintings", "The Tourist.webp"),
     thumbnail: productAsset("Paintings", "thumbs/The Tourist.webp"),
-    details: ["160cm x 36cm", "Oil, Acrylic on canvas"],
+    details: ["Oil, Acrylic on canvas", "160cm x 36cm"],
     description: "Oil, Acrylic on canvas. 160cm x 36cm.",
   },
   {
@@ -285,7 +305,7 @@ export const products = [
   {
     id: 102,
     code: "PT-09",
-    title: "MACH 1",
+    title: "Mach 1",
     category: "Paintings",
     price: 460,
     image: productAsset("Paintings", "MACH 1.webp"),
