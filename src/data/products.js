@@ -206,8 +206,8 @@ export const products = [
         label: "SIDE OF THE DRESSER FINAL",
       },
     ],
-    description:
-      "Placeholder furniture piece. Replace with dimensions, materials, finish, and lead time.",
+    details: ["Customize this field", "83cm wide x 42cm deep x 78cm tall"],
+    description: "83cm wide x 42cm deep x 78cm tall.",
   },
   {
     id: 7,
