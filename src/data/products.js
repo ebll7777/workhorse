@@ -206,8 +206,8 @@ export const products = [
         label: "SIDE OF THE DRESSER FINAL",
       },
     ],
-    details: ["Customize this field", "83cm wide x 42cm deep x 78cm tall"],
-    description: "83cm wide x 42cm deep x 78cm tall.",
+    details: ["Pen, pencil and marker on wood", "83cm wide x 42cm deep x 78cm tall"],
+    description: "Pen, pencil and marker on wood. 83cm wide x 42cm deep x 78cm tall.",
   },
   {
     id: 7,
