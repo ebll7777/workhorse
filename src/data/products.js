@@ -277,6 +277,28 @@ export const products = [
     price: 460,
     image: productAsset("Paintings", "The Tourist.webp"),
     thumbnail: productAsset("Paintings", "thumbs/The Tourist.webp"),
+    media: [
+      {
+        src: productAsset("Paintings", "The Tourist.webp"),
+        thumbnail: productAsset("Paintings", "thumbs/The Tourist.webp"),
+        label: "The Tourist",
+      },
+      {
+        src: productAsset("Paintings", "The Tourist 1.webp"),
+        thumbnail: productAsset("Paintings", "thumbs/The Tourist 1.webp"),
+        label: "The Tourist 1",
+      },
+      {
+        src: productAsset("Paintings", "The Tourist 2.webp"),
+        thumbnail: productAsset("Paintings", "thumbs/The Tourist 2.webp"),
+        label: "The Tourist 2",
+      },
+      {
+        src: productAsset("Paintings", "The Tourist 3.webp"),
+        thumbnail: productAsset("Paintings", "thumbs/The Tourist 3.webp"),
+        label: "The Tourist 3",
+      },
+    ],
     details: ["Oil, Acrylic on canvas", "160cm x 36cm"],
     description: "Oil, Acrylic on canvas. 160cm x 36cm.",
   },
