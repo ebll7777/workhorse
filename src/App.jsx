@@ -596,8 +596,9 @@ function sortItemsAlphabetically(items) {
 }
 
 function sortHomeGridItems(items) {
-  const paintings = items.filter((item) => item.category === "Paintings");
-  const rest = items.filter((item) => item.category !== "Paintings");
+  const visibleItems = items.filter((item) => !item.hideFromHome);
+  const paintings = visibleItems.filter((item) => item.category === "Paintings");
+  const rest = visibleItems.filter((item) => item.category !== "Paintings");
   return [...sortItemsAlphabetically(paintings), ...sortItemsAlphabetically(rest)];
 }
 
@@ -947,7 +948,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
     settleTouchZoom(touchZoomRef.current);
   };
 
-  const isShopProduct = product.category === "Stickers";
+  const isShopProduct = product.category === "Stickers" || product.category === "Prints";
   const isPaintingProduct = product.category === "Paintings";
   const detailLines = product.details?.length
     ? product.details
@@ -1653,6 +1654,12 @@ export default function App() {
   const filteredProducts = useMemo(() => {
     if (activeFilter === "All") {
       return sortHomeGridItems(products);
+    }
+
+    if (activeFilter === "Shop") {
+      return sortItemsAlphabetically(
+        products.filter((item) => item.category === "Stickers" || item.category === "Prints")
+      );
     }
 
     return sortItemsAlphabetically(products.filter((item) => item.category === activeFilter));
@@ -2525,7 +2532,7 @@ export default function App() {
   const navItems = [
     { label: "Drawings", action: () => handleFilterClick("Drawings") },
     { label: "Paintings", action: () => handleFilterClick("Paintings") },
-    { label: "Shop", action: () => handleFilterClick("Stickers") },
+    { label: "Shop", action: () => handleFilterClick("Shop") },
     { label: "Furniture", action: () => handleFilterClick("Furniture") },
     { label: "About", action: openAbout },
   ];
