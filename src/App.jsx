@@ -2864,18 +2864,6 @@ export default function App() {
           onMouseLeave={() => setIsFooterAnimated(false)}
           className="h-auto w-full max-w-[3.6rem] object-contain sm:max-w-[4.8rem]"
         />
-        <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[9px] uppercase tracking-[0.2em] text-black/45 sm:text-[10px]">
-          {siteInfoLinks.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => openSiteInfoPage(item.key)}
-              className="transition hover:text-black"
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
       </footer>
     </div>
   );
