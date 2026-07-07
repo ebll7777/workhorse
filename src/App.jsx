@@ -1534,7 +1534,7 @@ function OrderSuccessPage({ onContinueShopping }) {
   );
 }
 
-function SiteInfoPage({ page, onOpenPage }) {
+function SiteInfoPage({ page }) {
   if (!page) return null;
 
   return (
@@ -1555,18 +1555,6 @@ function SiteInfoPage({ page, onOpenPage }) {
             ))}
           </div>
 
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 pt-6 text-[10px] uppercase tracking-[0.2em] text-black/60">
-            {siteInfoLinks.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => onOpenPage(item.key)}
-                className="transition hover:text-black"
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
         </div>
       </div>
     </section>
@@ -2796,7 +2784,7 @@ export default function App() {
             </motion.div>
           ) : currentView === "info" ? (
             <motion.div key={viewKey} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
-              <SiteInfoPage page={siteInfoPages[siteInfoPageKey]} onOpenPage={openSiteInfoPage} />
+              <SiteInfoPage page={siteInfoPages[siteInfoPageKey]} />
             </motion.div>
           ) : (
             <motion.section
