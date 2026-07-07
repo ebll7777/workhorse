@@ -71,7 +71,6 @@ const drawingFiles = [
   "F-Word.png",
   "Get Out of My Head.jpg",
   "girl.png",
-  "gorilla.png",
   "hands.png",
   "Help me.png",
   "house.png",
