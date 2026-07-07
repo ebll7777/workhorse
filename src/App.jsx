@@ -949,13 +949,9 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
   };
 
   const isShopProduct = product.category === "Stickers" || product.category === "Prints";
-  const isPaintingProduct = product.category === "Paintings";
   const detailLines = product.details?.length
     ? product.details
     : ["Customize this field", "Customize this field"];
-  const visibleDetailLines = isPaintingProduct
-    ? [...detailLines, "Prints available: EUR 40 + delivery"]
-    : detailLines;
   const isTouchZoomed = touchZoom.scale > 1.01;
   const isTouchGestureActive = touchGestureRef.current.mode !== null;
   const artworkTransform = isTouchZoomed
@@ -1091,7 +1087,7 @@ function ProductPage({ product, onBack, onPrevious, onNext, onAddToCart }) {
                     </div>
                   </div>
                 ) : null}
-                {visibleDetailLines.map((detail, index) => (
+                {detailLines.map((detail, index) => (
                   <div key={`${detail}-${index}`} className="flex justify-center py-2 sm:py-3">
                     <span className="break-words px-2">{detail}</span>
                   </div>
