@@ -145,7 +145,6 @@ const siteInfoLinks = [
   { key: "returns", label: "Returns" },
   { key: "privacy", label: "Privacy" },
   { key: "terms", label: "Terms" },
-  { key: "impressum", label: "Impressum" },
 ];
 
 const COUNTRY_OPTIONS = [
