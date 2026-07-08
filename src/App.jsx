@@ -2730,7 +2730,7 @@ export default function App() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -5 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute left-[calc(100%+0.05rem)] top-[-0.85rem] z-50 h-[4.2rem] w-[9.8rem] text-[12px] leading-none tracking-[0.01em]"
+                        className="absolute left-[calc(100%+0.05rem)] top-[-0.85rem] z-50 h-[4.2rem] w-[9.8rem] text-base leading-none tracking-[0.01em]"
                       >
                         <svg
                           aria-hidden="true"
