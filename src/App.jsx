@@ -1680,6 +1680,7 @@ export default function App() {
 
   const columnsPerRowByZoom = isMobileViewport ? [2, 2, 1, 1] : [4, 2, 2, 1];
   const rowsPerScreenByZoom = isMobileViewport ? [4, 3, 1, 1] : [3, 2, 1, 1];
+  const maxGridZoomLevel = columnsPerRowByZoom.length - 1;
   const columnsPerRow = columnsPerRowByZoom[zoomLevel];
   const rowsPerScreen = rowsPerScreenByZoom[zoomLevel];
   const gridColumnsClass =
@@ -2569,7 +2570,7 @@ export default function App() {
     const currentIndex = getClosestRowIndex();
     const nextZoomLevel =
       direction === "in"
-        ? Math.min(zoomLevel + 1, columnsPerRowByZoom.length - 1)
+        ? Math.min(zoomLevel + 1, maxGridZoomLevel)
         : Math.max(zoomLevel - 1, 0);
 
     if (nextZoomLevel === zoomLevel) {
@@ -2662,19 +2663,43 @@ export default function App() {
           <div className="absolute left-3 flex items-center gap-3 sm:left-5">
             {currentView === "shop" ? (
               <motion.div
-                animate={{ width: zoomLevel > 0 ? 72 : 40 }}
+                animate={{ width: zoomLevel > 0 && zoomLevel < maxGridZoomLevel ? 72 : 40 }}
                 transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
                 className="relative hidden h-10 overflow-visible sm:block"
               >
                 <AnimatePresence initial={false}>
-                  {zoomLevel > 0 ? (
+                  {zoomLevel < maxGridZoomLevel ? (
                     <motion.button
-                      key="zoom-out"
+                      key="zoom-in"
                       type="button"
                       initial={{ opacity: 0, scale: 0.65 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.65 }}
                       transition={{ duration: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      onClick={() => handleZoomChange("in")}
+                      className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center transition hover:opacity-50"
+                      aria-label="Zoom in"
+                    >
+                      <span aria-hidden="true" className="relative block h-5 w-5">
+                        <span className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-black" />
+                        <span className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-black" />
+                      </span>
+                    </motion.button>
+                  ) : null}
+                </AnimatePresence>
+                <AnimatePresence initial={false}>
+                  {zoomLevel > 0 ? (
+                    <motion.button
+                      key="zoom-out"
+                      type="button"
+                      initial={{
+                        opacity: 0,
+                        scale: 0.65,
+                        x: zoomLevel < maxGridZoomLevel ? 32 : 0,
+                      }}
+                      animate={{ opacity: 1, scale: 1, x: zoomLevel < maxGridZoomLevel ? 32 : 0 }}
+                      exit={{ opacity: 0, scale: 0.65 }}
+                      transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
                       onClick={() => handleZoomChange("out")}
                       className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center transition hover:opacity-50"
                       aria-label="Zoom out"
@@ -2683,22 +2708,6 @@ export default function App() {
                     </motion.button>
                   ) : null}
                 </AnimatePresence>
-                <motion.button
-                  type="button"
-                  animate={{ x: zoomLevel > 0 ? 32 : 0 }}
-                  transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
-                  onClick={() => handleZoomChange("in")}
-                  disabled={zoomLevel >= columnsPerRowByZoom.length - 1}
-                  className={`absolute left-0 top-0 flex h-10 w-10 items-center justify-center transition hover:opacity-50 ${
-                    zoomLevel >= columnsPerRowByZoom.length - 1 ? "opacity-30 hover:opacity-30" : ""
-                  }`}
-                  aria-label="Zoom in"
-                >
-                  <span aria-hidden="true" className="relative block h-5 w-5">
-                    <span className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-black" />
-                    <span className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-black" />
-                  </span>
-                </motion.button>
               </motion.div>
             ) : currentView === "product" ? (
               <button
