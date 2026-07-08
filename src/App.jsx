@@ -3137,7 +3137,7 @@ export default function App() {
                     </figure>
                   </div>
 
-                  <div className="max-w-3xl space-y-8 sm:space-y-10">
+                  <div className="mx-auto max-w-3xl space-y-8 sm:space-y-10">
                     <div className="space-y-5 text-sm leading-7 text-black/75">
                       <p>
                         Feet dangling off the chair scribbling at his tiny desk, sketching drawings on the side of notebooks distracted in class, creating novels with pen, brushes, and on screen, from lived to fiction. For Jonathan Jaffrey, drawing has always been part of his life. It started from a young age. His dad told him stories, sketching characters that remain with him to this day. Jon took what was a natural born hobby and used it as a tool to express experiences, cultures, and characters, all from a truthfully raw point of view.
