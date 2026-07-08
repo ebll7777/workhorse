@@ -2999,7 +2999,7 @@ export default function App() {
         ref={shopViewportRef}
         className={
           currentView === "shop"
-            ? "relative z-0 flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory pb-24 pt-[92px] sm:pt-[97px]"
+            ? "relative z-0 flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-pt-[136px] pb-24 pt-[136px] sm:scroll-pt-[148px] sm:pt-[148px]"
             : "relative z-0 flex-1 overflow-y-auto overflow-x-hidden pb-24 pt-[92px] sm:pt-[97px]"
         }
       >
