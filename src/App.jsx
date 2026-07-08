@@ -2726,37 +2726,78 @@ export default function App() {
                   <AnimatePresence>
                     {isShopTreeOpen ? (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.88, y: -5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.88, y: -5 }}
+                        initial={{ opacity: 0, x: -5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -5 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute left-1/2 top-full z-50 mt-1 w-24 -translate-x-1/2 bg-white px-1 py-1 text-[12px] leading-none tracking-[0.01em]"
+                        className="absolute left-[calc(100%+0.05rem)] top-[-0.85rem] z-50 h-[4.2rem] w-[9.8rem] text-[12px] leading-none tracking-[0.01em]"
                       >
-                        <div className="relative flex flex-col items-center gap-1.5 py-1">
-                          <span className="absolute left-1/2 top-[1.1rem] h-[1.3rem] w-px -translate-x-1/2 bg-black/55" />
-                          <span className="absolute left-[42%] top-[1.05rem] h-px w-[16%] -rotate-12 bg-black/55" />
-                          <span className="absolute left-[42%] top-[2.35rem] h-px w-[16%] rotate-12 bg-black/55" />
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleShopSectionClick("prints");
-                            }}
-                            className="relative z-10 bg-white px-1 transition hover:opacity-50"
-                          >
-                            Prints
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleShopSectionClick("stickers");
-                            }}
-                            className="relative z-10 bg-white px-1 transition hover:opacity-50"
-                          >
-                            Stickers
-                          </button>
-                        </div>
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 156 68"
+                          className="absolute inset-0 h-full w-full overflow-visible"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="square"
+                          strokeWidth="1.15"
+                        >
+                          <motion.path
+                            d="M0 34H34"
+                            initial={{ pathLength: 0, opacity: 0 }}
+                            animate={{ pathLength: 1, opacity: 0.75 }}
+                            exit={{ pathLength: 0, opacity: 0 }}
+                            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                          />
+                          <motion.path
+                            d="M34 20V48"
+                            initial={{ pathLength: 0, opacity: 0 }}
+                            animate={{ pathLength: 1, opacity: 0.75 }}
+                            exit={{ pathLength: 0, opacity: 0 }}
+                            transition={{ duration: 0.16, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+                          />
+                          {["M34 20H82", "M34 48H82"].map((path, index) => (
+                            <motion.path
+                              key={path}
+                              d={path}
+                              initial={{ pathLength: 0, opacity: 0 }}
+                              animate={{ pathLength: 1, opacity: 0.75 }}
+                              exit={{ pathLength: 0, opacity: 0 }}
+                              transition={{
+                                duration: 0.18,
+                                delay: 0.14 + index * 0.045,
+                                ease: [0.22, 1, 0.36, 1],
+                              }}
+                            />
+                          ))}
+                        </svg>
+                        <motion.button
+                          type="button"
+                          initial={{ opacity: 0, x: -3 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -3 }}
+                          transition={{ duration: 0.14, delay: 0.2 }}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleShopSectionClick("prints");
+                          }}
+                          className="absolute left-[5.45rem] top-[0.85rem] bg-white px-1 text-left transition hover:opacity-50"
+                        >
+                          Prints
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          initial={{ opacity: 0, x: -3 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -3 }}
+                          transition={{ duration: 0.14, delay: 0.24 }}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleShopSectionClick("stickers");
+                          }}
+                          className="absolute left-[5.45rem] top-[2.6rem] bg-white px-1 text-left transition hover:opacity-50"
+                        >
+                          Stickers
+                        </motion.button>
                       </motion.div>
                     ) : null}
                   </AnimatePresence>
