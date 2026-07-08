@@ -1571,7 +1571,6 @@ export default function App() {
   const [currentView, setCurrentView] = useState("shop");
   const [siteInfoPageKey, setSiteInfoPageKey] = useState("shipping");
   const [zoomLevel, setZoomLevel] = useState(0);
-  const [zoomDirection, setZoomDirection] = useState("in");
   const [pendingRowIndex, setPendingRowIndex] = useState(null);
   const [shopReturnRowIndex, setShopReturnRowIndex] = useState(0);
   const [cartItems, setCartItems] = useState([]);
@@ -2562,29 +2561,25 @@ export default function App() {
   const openPreviousProduct = () => navigateSelectedProduct(-1);
   const openNextProduct = () => navigateSelectedProduct(1);
 
-  const handleZoomToggle = () => {
+  const handleZoomChange = (direction) => {
     if (currentView !== "shop") {
       return;
     }
 
     const currentIndex = getClosestRowIndex();
-    let nextZoomLevel = zoomLevel;
-    let nextZoomDirection = zoomDirection;
-    let nextRowIndex = currentIndex;
+    const nextZoomLevel =
+      direction === "in"
+        ? Math.min(zoomLevel + 1, columnsPerRowByZoom.length - 1)
+        : Math.max(zoomLevel - 1, 0);
 
-    if (zoomDirection === "in") {
-      nextZoomLevel = Math.min(zoomLevel + 1, 3);
-      nextZoomDirection = nextZoomLevel === 3 ? "out" : "in";
-    } else {
-      nextZoomLevel = Math.max(zoomLevel - 1, 0);
-      nextZoomDirection = nextZoomLevel === 0 ? "in" : "out";
+    if (nextZoomLevel === zoomLevel) {
+      return;
     }
 
     const currentFirstItemIndex = currentIndex * columnsPerRowByZoom[zoomLevel];
-    nextRowIndex = Math.floor(currentFirstItemIndex / columnsPerRowByZoom[nextZoomLevel]);
+    const nextRowIndex = Math.floor(currentFirstItemIndex / columnsPerRowByZoom[nextZoomLevel]);
 
     setZoomLevel(nextZoomLevel);
-    setZoomDirection(nextZoomDirection);
     setPendingRowIndex(nextRowIndex);
   };
 
@@ -2666,21 +2661,45 @@ export default function App() {
         <div className="relative flex items-center justify-center px-3 py-2 sm:px-5 sm:py-3">
           <div className="absolute left-3 flex items-center gap-3 sm:left-5">
             {currentView === "shop" ? (
-              <button
-                type="button"
-                onClick={handleZoomToggle}
-                className="hidden h-10 w-10 items-center justify-center transition hover:opacity-50 sm:flex"
-                aria-label="Toggle grid layout"
+              <motion.div
+                animate={{ width: zoomLevel > 0 ? 72 : 40 }}
+                transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="relative hidden h-10 overflow-visible sm:block"
               >
-                {zoomDirection === "out" ? (
-                  <span aria-hidden="true" className="block h-0.5 w-5 bg-black" />
-                ) : (
+                <AnimatePresence initial={false}>
+                  {zoomLevel > 0 ? (
+                    <motion.button
+                      key="zoom-out"
+                      type="button"
+                      initial={{ opacity: 0, scale: 0.65 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.65 }}
+                      transition={{ duration: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      onClick={() => handleZoomChange("out")}
+                      className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center transition hover:opacity-50"
+                      aria-label="Zoom out"
+                    >
+                      <span aria-hidden="true" className="block h-0.5 w-5 bg-black" />
+                    </motion.button>
+                  ) : null}
+                </AnimatePresence>
+                <motion.button
+                  type="button"
+                  animate={{ x: zoomLevel > 0 ? 32 : 0 }}
+                  transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  onClick={() => handleZoomChange("in")}
+                  disabled={zoomLevel >= columnsPerRowByZoom.length - 1}
+                  className={`absolute left-0 top-0 flex h-10 w-10 items-center justify-center transition hover:opacity-50 ${
+                    zoomLevel >= columnsPerRowByZoom.length - 1 ? "opacity-30 hover:opacity-30" : ""
+                  }`}
+                  aria-label="Zoom in"
+                >
                   <span aria-hidden="true" className="relative block h-5 w-5">
                     <span className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-black" />
                     <span className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-black" />
                   </span>
-                )}
-              </button>
+                </motion.button>
+              </motion.div>
             ) : currentView === "product" ? (
               <button
                 type="button"
