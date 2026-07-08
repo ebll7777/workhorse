@@ -3049,7 +3049,7 @@ export default function App() {
                         }}
                         key={`${activeFilter}-${index}`}
                         style={rowRenderStyle}
-                        className={rowPaddingClass}
+                        className={`${rowPaddingClass} ${index === 0 ? "pt-8 sm:pt-10" : ""}`}
                       >
                         <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
                           {group.map((product) => (
