@@ -1575,6 +1575,8 @@ export default function App() {
   const [pendingRowIndex, setPendingRowIndex] = useState(null);
   const [shopReturnRowIndex, setShopReturnRowIndex] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+  const [isShopTreeOpen, setIsShopTreeOpen] = useState(false);
+  const [pendingShopSection, setPendingShopSection] = useState(null);
   const [checkoutEmail, setCheckoutEmail] = useState("");
   const [checkoutDetails, setCheckoutDetails] = useState({
     email: "",
@@ -1621,6 +1623,8 @@ export default function App() {
     typeof window !== "undefined" ? window.matchMedia("(max-width: 639px)").matches : false
   );
   const shopViewportRef = useRef(null);
+  const shopPrintsRef = useRef(null);
+  const shopStickersRef = useRef(null);
   const visibleRowRefs = useRef([]);
 
   useEffect(() => {
@@ -1653,9 +1657,9 @@ export default function App() {
     }
 
     if (activeFilter === "Shop") {
-      return sortItemsAlphabetically(
-        products.filter((item) => item.category === "Stickers" || item.category === "Prints")
-      );
+      const prints = products.filter((item) => item.category === "Prints");
+      const stickers = products.filter((item) => item.category === "Stickers");
+      return [...sortItemsAlphabetically(prints), ...sortItemsAlphabetically(stickers)];
     }
 
     if (activeFilter === "Artwork") {
@@ -1703,6 +1707,22 @@ export default function App() {
   const productGroups = useMemo(
     () => chunkProducts(filteredProducts, columnsPerRow),
     [filteredProducts, columnsPerRow]
+  );
+  const shopPrintProducts = useMemo(
+    () => sortItemsAlphabetically(products.filter((item) => item.category === "Prints")),
+    []
+  );
+  const shopStickerProducts = useMemo(
+    () => sortItemsAlphabetically(products.filter((item) => item.category === "Stickers")),
+    []
+  );
+  const shopPrintGroups = useMemo(
+    () => chunkProducts(shopPrintProducts, columnsPerRow),
+    [shopPrintProducts, columnsPerRow]
+  );
+  const shopStickerGroups = useMemo(
+    () => chunkProducts(shopStickerProducts, columnsPerRow),
+    [shopStickerProducts, columnsPerRow]
   );
 
   const selectedProductIndex = selectedProduct
@@ -1785,6 +1805,37 @@ export default function App() {
 
     setPendingRowIndex(null);
   }, [pendingRowIndex, zoomLevel, productGroups.length]);
+
+  useEffect(() => {
+    visibleRowRefs.current = [];
+  }, [activeFilter, columnsPerRow]);
+
+  useEffect(() => {
+    if (currentView !== "shop" || activeFilter !== "Shop" || !pendingShopSection) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const target =
+        pendingShopSection === "prints" ? shopPrintsRef.current : shopStickersRef.current;
+
+      if (!target) {
+        setPendingShopSection(null);
+        return;
+      }
+
+      const container = shopViewportRef.current;
+      if (container && container.scrollHeight > container.clientHeight + 1) {
+        container.scrollTo({ top: Math.max(0, target.offsetTop - 8), behavior: "smooth" });
+      } else {
+        const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+        const nextTop = window.scrollY + target.getBoundingClientRect().top - headerBottom - 8;
+        window.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+      }
+
+      setPendingShopSection(null);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [activeFilter, currentView, pendingShopSection]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -1970,6 +2021,12 @@ export default function App() {
     if (shopViewportRef.current) {
       shopViewportRef.current.scrollTo({ top: 0, behavior: "auto" });
     }
+  };
+
+  const handleShopSectionClick = (section) => {
+    setIsShopTreeOpen(false);
+    setPendingShopSection(section);
+    handleFilterClick("Shop");
   };
 
   const handleHomeClick = () => {
@@ -2647,13 +2704,72 @@ export default function App() {
 
           <nav className="workhorse-serif grid w-full max-w-[9.5rem] grid-cols-2 gap-x-0.5 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1">
             {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={item.action}
-                className="text-center leading-tight transition hover:opacity-50"
-              >
-                {item.label}
-              </button>
+              item.label === "Shop" ? (
+                <div
+                  key={item.label}
+                  className="relative text-center leading-tight"
+                  onMouseEnter={() => setIsShopTreeOpen(true)}
+                  onMouseLeave={() => setIsShopTreeOpen(false)}
+                  onFocus={() => setIsShopTreeOpen(true)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                      setIsShopTreeOpen(false);
+                    }
+                  }}
+                >
+                  <button
+                    onClick={item.action}
+                    className="transition hover:opacity-50"
+                  >
+                    {item.label}
+                  </button>
+                  <AnimatePresence>
+                    {isShopTreeOpen ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.88, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.88, y: -5 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute left-1/2 top-full z-50 mt-1 w-24 -translate-x-1/2 bg-white px-1 py-1 text-[12px] leading-none tracking-[0.01em]"
+                      >
+                        <div className="relative flex flex-col items-center gap-1.5 py-1">
+                          <span className="absolute left-1/2 top-[1.1rem] h-[1.3rem] w-px -translate-x-1/2 bg-black/55" />
+                          <span className="absolute left-[42%] top-[1.05rem] h-px w-[16%] -rotate-12 bg-black/55" />
+                          <span className="absolute left-[42%] top-[2.35rem] h-px w-[16%] rotate-12 bg-black/55" />
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleShopSectionClick("prints");
+                            }}
+                            className="relative z-10 bg-white px-1 transition hover:opacity-50"
+                          >
+                            Prints
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleShopSectionClick("stickers");
+                            }}
+                            className="relative z-10 bg-white px-1 transition hover:opacity-50"
+                          >
+                            Stickers
+                          </button>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="text-center leading-tight transition hover:opacity-50"
+                >
+                  {item.label}
+                </button>
+              )
             ))}
           </nav>
 
@@ -2716,32 +2832,105 @@ export default function App() {
               className=""
             >
               {productGroups.length > 0 ? (
-                <div>
-                  {productGroups.map((group, index) => (
+                activeFilter === "Shop" ? (
+                  <div>
                     <div
-                      ref={(element) => {
-                        visibleRowRefs.current[index] = element;
-                      }}
-                      key={`${activeFilter}-${index}`}
-                      style={rowRenderStyle}
-                      className={rowPaddingClass}
+                      ref={shopPrintsRef}
+                      className="px-4 pb-1 pt-3 text-center text-[11px] uppercase tracking-[0.22em] text-black/65 sm:px-6 sm:pt-4"
                     >
-                      <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
-                        {group.map((product) => (
-                          <div key={product.id} className="min-h-0">
-                            <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
-                          </div>
-                        ))}
-                        {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
-                          <div
-                            key={`empty-${activeFilter}-${index}-${fillerIndex}`}
-                            className="min-h-0 bg-white"
-                          />
-                        ))}
+                      Prints
+                    </div>
+                    {shopPrintGroups.map((group, index) => (
+                      <div
+                        ref={(element) => {
+                          visibleRowRefs.current[index] = element;
+                        }}
+                        key={`shop-prints-${index}`}
+                        style={rowRenderStyle}
+                        className={rowPaddingClass}
+                      >
+                        <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
+                          {group.map((product) => (
+                            <div key={product.id} className="min-h-0">
+                              <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
+                            </div>
+                          ))}
+                          {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
+                            <div
+                              key={`empty-shop-prints-${index}-${fillerIndex}`}
+                              className="min-h-0 bg-white"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      ref={shopStickersRef}
+                      className="px-4 py-5 text-center text-[11px] uppercase tracking-[0.22em] text-black/65 sm:px-6 sm:py-6"
+                    >
+                      <div className="mx-auto flex max-w-2xl items-center gap-4">
+                        <span className="h-px flex-1 bg-black/35" />
+                        <span>Stickers</span>
+                        <span className="h-px flex-1 bg-black/35" />
                       </div>
                     </div>
-                  ))}
-                </div>
+                    {shopStickerGroups.map((group, index) => {
+                      const rowIndex = shopPrintGroups.length + index;
+
+                      return (
+                        <div
+                          ref={(element) => {
+                            visibleRowRefs.current[rowIndex] = element;
+                          }}
+                          key={`shop-stickers-${index}`}
+                          style={rowRenderStyle}
+                          className={rowPaddingClass}
+                        >
+                          <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
+                            {group.map((product) => (
+                              <div key={product.id} className="min-h-0">
+                                <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
+                              </div>
+                            ))}
+                            {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
+                              <div
+                                key={`empty-shop-stickers-${index}-${fillerIndex}`}
+                                className="min-h-0 bg-white"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div>
+                    {productGroups.map((group, index) => (
+                      <div
+                        ref={(element) => {
+                          visibleRowRefs.current[index] = element;
+                        }}
+                        key={`${activeFilter}-${index}`}
+                        style={rowRenderStyle}
+                        className={rowPaddingClass}
+                      >
+                        <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
+                          {group.map((product) => (
+                            <div key={product.id} className="min-h-0">
+                              <ProductCard product={product} onOpen={openProductPage} imageClassName={productImageClass} />
+                            </div>
+                          ))}
+                          {Array.from({ length: Math.max(0, columnsPerRow - group.length) }).map((_, fillerIndex) => (
+                            <div
+                              key={`empty-${activeFilter}-${index}-${fillerIndex}`}
+                              className="min-h-0 bg-white"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
               ) : (
                 <div className="px-4 py-20 text-center text-[11px] uppercase tracking-[0.2em] text-black/60">
                   No items in this category yet.
