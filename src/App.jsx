@@ -15,9 +15,25 @@ const pageTransition = {
 };
 
 const logoImageSrc = "/products/banner.webp";
-const footerImageSrc = "/products/Workhorse.gmbh.webp";
 const footerImageAnimatedSrc = "/output-onlinegiftools.gif";
 const aboutImageSrc = "/about-jonjaff.webp";
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/jonjaff?igsh=MXAwNjJja2hjam5lMQ%3D%3D&utm_source=qr",
+    icon: "instagram",
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@jonjaff?_r=1&_t=ZP-97rh6iQbSiF",
+    icon: "tiktok",
+  },
+  {
+    label: "YouTube",
+    href: "https://youtube.com/@jonjaff?si=gmIAXFiKz29jhAhg",
+    icon: "youtube",
+  },
+];
 
 const fontStyles = `
   .workhorse-sans,
@@ -46,6 +62,42 @@ const stripeCardElementOptions = {
     },
   },
 };
+
+function SocialIcon({ icon }) {
+  if (icon === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-full w-full">
+        <rect x="4.5" y="4.5" width="15" height="15" rx="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="16.7" cy="7.4" r="1.1" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (icon === "tiktok") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-full w-full">
+        <path
+          fill="currentColor"
+          d="M14.3 3.5h2.3c.2 1.3.8 2.3 1.6 3.1.8.7 1.7 1.1 2.8 1.2v2.5c-1.2 0-2.4-.3-3.4-.9-.4-.2-.7-.4-1-.7v6.2c0 3.3-2.1 5.6-5.3 5.6-2.8 0-4.9-1.8-4.9-4.5 0-2.9 2.3-4.7 5.3-4.7.4 0 .8 0 1.1.1V14c-.3-.1-.7-.2-1.1-.2-1.5 0-2.6.8-2.6 2.1 0 1.2.9 2 2.2 2 1.7 0 2.9-1 2.9-3.1V3.5Z"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-full w-full">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+        d="M4.4 7.3c.3-1 1-1.6 2-1.8C8 5.2 12 5.2 12 5.2s4 0 5.6.3c1 .2 1.7.8 2 1.8.3 1.5.3 4.7.3 4.7s0 3.2-.3 4.7c-.3 1-1 1.6-2 1.8-1.6.3-5.6.3-5.6.3s-4 0-5.6-.3c-1-.2-1.7-.8-2-1.8C4.1 15.2 4.1 12 4.1 12s0-3.2.3-4.7Z"
+      />
+      <path fill="currentColor" d="m10.2 9 4.5 3-4.5 3V9Z" />
+    </svg>
+  );
+}
 
 const siteInfoPages = {
   shipping: {
@@ -1617,7 +1669,6 @@ export default function App() {
   });
   const [stripePublishableKey, setStripePublishableKey] = useState(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
   const [stripePublishableKeyError, setStripePublishableKeyError] = useState("");
-  const [isFooterAnimated, setIsFooterAnimated] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(max-width: 639px)").matches : false
   );
@@ -1824,15 +1875,19 @@ export default function App() {
 
       const container = shopViewportRef.current;
       if (container && container.scrollHeight > container.clientHeight + 1) {
-        container.scrollTo({ top: Math.max(0, target.offsetTop - 8), behavior: "smooth" });
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const nextTop = container.scrollTop + targetRect.top - containerRect.top - 12;
+
+        container.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
       } else {
         const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
-        const nextTop = window.scrollY + target.getBoundingClientRect().top - headerBottom - 8;
+        const nextTop = window.scrollY + target.getBoundingClientRect().top - headerBottom - 12;
         window.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
       }
 
       setPendingShopSection(null);
-    }, 0);
+    }, 220);
 
     return () => window.clearTimeout(timeoutId);
   }, [activeFilter, currentView, pendingShopSection]);
@@ -2538,6 +2593,9 @@ export default function App() {
     setSelectedProduct(product);
     setCurrentView("product");
     window.scrollTo({ top: 0 });
+    if (shopViewportRef.current) {
+      shopViewportRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   const closeProductPage = () => {
@@ -2557,6 +2615,9 @@ export default function App() {
 
     setSelectedProduct(filteredProducts[nextIndex]);
     window.scrollTo({ top: 0, behavior: "auto" });
+    if (shopViewportRef.current) {
+      shopViewportRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   const openPreviousProduct = () => navigateSelectedProduct(-1);
@@ -2611,7 +2672,7 @@ export default function App() {
   return (
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
       <style>{fontStyles}</style>
-      <header className="sticky top-0 z-40 bg-white">
+      <header className="fixed left-0 right-0 top-0 z-[60] bg-white">
         <div className="relative flex justify-center px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
           <button
             onClick={handleHomeClick}
@@ -2884,8 +2945,8 @@ export default function App() {
         ref={shopViewportRef}
         className={
           currentView === "shop"
-            ? "flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory"
-            : "flex-1 overflow-y-auto overflow-x-hidden"
+            ? "relative z-0 flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory pb-24 pt-[92px] sm:pt-[97px]"
+            : "relative z-0 flex-1 overflow-y-auto overflow-x-hidden pb-24 pt-[92px] sm:pt-[97px]"
         }
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -2905,7 +2966,7 @@ export default function App() {
                   <div>
                     <div
                       ref={shopPrintsRef}
-                      className="px-4 pb-1 pt-3 text-center text-[11px] uppercase tracking-[0.22em] text-black/65 sm:px-6 sm:pt-4"
+                      className="px-4 pb-1 pt-3 text-center text-base uppercase tracking-[0.16em] text-black/75 sm:px-6 sm:pt-4"
                     >
                       Prints
                     </div>
@@ -2935,13 +2996,9 @@ export default function App() {
                     ))}
                     <div
                       ref={shopStickersRef}
-                      className="px-4 py-5 text-center text-[11px] uppercase tracking-[0.22em] text-black/65 sm:px-6 sm:py-6"
+                      className="px-4 py-5 text-center text-base uppercase tracking-[0.16em] text-black/75 sm:px-6 sm:py-6"
                     >
-                      <div className="mx-auto flex max-w-2xl items-center gap-4">
-                        <span className="h-px flex-1 bg-black/35" />
-                        <span>Stickers</span>
-                        <span className="h-px flex-1 bg-black/35" />
-                      </div>
+                      Stickers
                     </div>
                     {shopStickerGroups.map((group, index) => {
                       const rowIndex = shopPrintGroups.length + index;
@@ -3106,14 +3163,26 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="flex flex-col items-center justify-center gap-3 px-4 py-4 sm:px-6">
+      <footer className="fixed bottom-0 left-0 right-0 z-[70] flex h-20 items-center justify-center bg-white/95 px-4 sm:px-6">
         <img
-          src={isFooterAnimated ? footerImageAnimatedSrc : footerImageSrc}
+          src={footerImageAnimatedSrc}
           alt="Workhorse"
-          onMouseEnter={() => setIsFooterAnimated(true)}
-          onMouseLeave={() => setIsFooterAnimated(false)}
           className="h-auto w-full max-w-[3.6rem] object-contain sm:max-w-[4.8rem]"
         />
+        <div className="absolute right-4 flex items-center gap-3 sm:right-6">
+          {socialLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={link.label}
+              className="h-5 w-5 text-black transition hover:opacity-50 sm:h-6 sm:w-6"
+            >
+              <SocialIcon icon={link.icon} />
+            </a>
+          ))}
+        </div>
       </footer>
     </div>
   );
