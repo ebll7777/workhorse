@@ -1658,6 +1658,12 @@ export default function App() {
       );
     }
 
+    if (activeFilter === "Artwork") {
+      return sortHomeGridItems(
+        products.filter((item) => item.category === "Paintings" || item.category === "Drawings")
+      );
+    }
+
     return sortItemsAlphabetically(products.filter((item) => item.category === activeFilter));
   }, [activeFilter]);
 
@@ -2526,14 +2532,11 @@ export default function App() {
   };
 
   const navItems = [
-    { label: "Drawings", action: () => handleFilterClick("Drawings") },
-    { label: "Paintings", action: () => handleFilterClick("Paintings") },
+    { label: "Artwork", action: () => handleFilterClick("Artwork") },
     { label: "Shop", action: () => handleFilterClick("Shop") },
     { label: "Furniture", action: () => handleFilterClick("Furniture") },
     { label: "About", action: openAbout },
   ];
-  const desktopNavTopItems = navItems.slice(0, 3);
-  const desktopNavBottomItems = navItems.slice(3);
 
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -2642,23 +2645,12 @@ export default function App() {
             ) : null}
           </div>
 
-          <nav className="workhorse-serif grid w-full max-w-[19rem] grid-cols-5 gap-y-0.5 text-base tracking-[0.01em]">
-            {desktopNavTopItems.map((item, index) => (
+          <nav className="workhorse-serif grid w-full max-w-[16rem] grid-cols-2 gap-x-10 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[18rem] sm:gap-x-12">
+            {navItems.map((item) => (
               <button
                 key={item.label}
                 onClick={item.action}
                 className="text-center leading-tight transition hover:opacity-50"
-                style={{ gridColumn: index * 2 + 1, gridRow: 1 }}
-              >
-                {item.label}
-              </button>
-            ))}
-            {desktopNavBottomItems.map((item, index) => (
-              <button
-                key={item.label}
-                onClick={item.action}
-                className="text-center leading-tight transition hover:opacity-50"
-                style={{ gridColumn: index * 2 + 2, gridRow: 2 }}
               >
                 {item.label}
               </button>
