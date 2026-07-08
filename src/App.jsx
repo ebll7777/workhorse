@@ -3122,9 +3122,9 @@ export default function App() {
               className="min-h-[calc(100svh-92px)] sm:min-h-[calc(100vh-97px)]"
             >
               <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
-                <div className="max-w-3xl space-y-8 sm:space-y-10">
-                  <p className="text-[11px] uppercase tracking-[0.24em]">About</p>
-                  <div className="space-y-5 sm:space-y-6">
+                <div className="space-y-8 sm:space-y-10">
+                  <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
+                    <p className="text-center text-[11px] uppercase tracking-[0.24em]">About</p>
                     <h1 className="workhorse-serif text-center text-3xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
                     <figure className="mx-auto w-full max-w-[22rem] overflow-hidden bg-white sm:max-w-[26rem]">
                       <img
@@ -3135,6 +3135,9 @@ export default function App() {
                         className="h-auto w-full object-cover"
                       />
                     </figure>
+                  </div>
+
+                  <div className="max-w-3xl space-y-8 sm:space-y-10">
                     <div className="space-y-5 text-sm leading-7 text-black/75">
                       <p>
                         Feet dangling off the chair scribbling at his tiny desk, sketching drawings on the side of notebooks distracted in class, creating novels with pen, brushes, and on screen, from lived to fiction. For Jonathan Jaffrey, drawing has always been part of his life. It started from a young age. His dad told him stories, sketching characters that remain with him to this day. Jon took what was a natural born hobby and used it as a tool to express experiences, cultures, and characters, all from a truthfully raw point of view.
@@ -3149,7 +3152,6 @@ export default function App() {
                         The artist now resides in Berlin, Germany exploring entirely new media, different cultures, and various perspectives yet to be illustrated. His newest collection, The Tourist, features a series of original characters adding to the universe he creates with his art. And there's so much more left to see, and many more stories to tell.
                       </p>
                     </div>
-                  </div>
 
                   <div className="space-y-3">
                     <h2 className="workhorse-serif text-2xl tracking-[0.06em] sm:text-3xl">Contact</h2>
@@ -3168,6 +3170,7 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+              </div>
               </div>
             </motion.section>
           )}
