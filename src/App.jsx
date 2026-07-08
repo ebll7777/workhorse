@@ -2977,7 +2977,7 @@ export default function App() {
                   <div>
                     <div
                       ref={shopPrintsRef}
-                      className="px-4 pb-1 pt-3 text-center text-base uppercase tracking-[0.16em] text-black/75 sm:px-6 sm:pt-4"
+                      className="snap-start px-4 pb-3 pt-4 text-center text-base tracking-[0.08em] text-black/75 sm:px-6 sm:pb-4 sm:pt-5"
                     >
                       Prints
                     </div>
@@ -3007,7 +3007,7 @@ export default function App() {
                     ))}
                     <div
                       ref={shopStickersRef}
-                      className="px-4 py-5 text-center text-base uppercase tracking-[0.16em] text-black/75 sm:px-6 sm:py-6"
+                      className="snap-start px-4 py-7 text-center text-base tracking-[0.08em] text-black/75 sm:px-6 sm:py-8"
                     >
                       Stickers
                     </div>
