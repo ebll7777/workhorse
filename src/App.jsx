@@ -1628,6 +1628,7 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [isShopTreeOpen, setIsShopTreeOpen] = useState(false);
   const [pendingShopSection, setPendingShopSection] = useState(null);
+  const [isProductMenuHidden, setIsProductMenuHidden] = useState(false);
   const [checkoutEmail, setCheckoutEmail] = useState("");
   const [checkoutDetails, setCheckoutDetails] = useState({
     email: "",
@@ -1676,6 +1677,24 @@ export default function App() {
   const shopPrintsRef = useRef(null);
   const shopStickersRef = useRef(null);
   const visibleRowRefs = useRef([]);
+
+  useEffect(() => {
+    const container = shopViewportRef.current;
+
+    if (currentView !== "product" || !container) {
+      setIsProductMenuHidden(false);
+      return undefined;
+    }
+
+    const handleProductScroll = () => {
+      setIsProductMenuHidden(container.scrollTop > 54);
+    };
+
+    handleProductScroll();
+    container.addEventListener("scroll", handleProductScroll, { passive: true });
+
+    return () => container.removeEventListener("scroll", handleProductScroll);
+  }, [currentView, selectedProduct?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -2601,6 +2620,7 @@ export default function App() {
   const openProductPage = (product) => {
     const currentIndex = getClosestRowIndex();
     setShopReturnRowIndex(currentIndex);
+    setIsProductMenuHidden(false);
     setSelectedProduct(product);
     setCurrentView("product");
     window.scrollTo({ top: 0 });
@@ -2624,6 +2644,7 @@ export default function App() {
     const nextIndex =
       (selectedProductIndex + direction + filteredProducts.length) % filteredProducts.length;
 
+    setIsProductMenuHidden(false);
     setSelectedProduct(filteredProducts[nextIndex]);
     window.scrollTo({ top: 0, behavior: "auto" });
     if (shopViewportRef.current) {
@@ -2684,7 +2705,7 @@ export default function App() {
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
       <style>{fontStyles}</style>
       <header className="fixed left-0 right-0 top-0 z-[60] bg-white">
-        <div className="relative flex justify-center px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
+        <div className="relative z-20 flex justify-center bg-white px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
           <button
             onClick={handleHomeClick}
             aria-label="Go to top"
@@ -2802,7 +2823,18 @@ export default function App() {
             ) : null}
           </div>
 
-          <nav className="workhorse-serif grid w-full max-w-[9.5rem] grid-cols-2 gap-x-0.5 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1">
+          <motion.nav
+            animate={
+              currentView === "product" && isProductMenuHidden
+                ? { y: -42, opacity: 0 }
+                : { y: 0, opacity: 1 }
+            }
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              pointerEvents: currentView === "product" && isProductMenuHidden ? "none" : "auto",
+            }}
+            className="workhorse-serif relative z-0 grid w-full max-w-[9.5rem] grid-cols-2 gap-x-0.5 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1"
+          >
             {navItems.map((item) => (
               item.label === "Shop" ? (
                 <div
@@ -2912,7 +2944,7 @@ export default function App() {
                 </button>
               )
             ))}
-          </nav>
+          </motion.nav>
 
           <div className="absolute right-3 hidden items-center gap-3 sm:right-5 sm:flex">
             <AnimatePresence initial={false}>
