@@ -1874,6 +1874,17 @@ export default function App() {
       }
 
       const container = shopViewportRef.current;
+      if (pendingShopSection === "prints") {
+        if (container && container.scrollHeight > container.clientHeight + 1) {
+          container.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        setPendingShopSection(null);
+        return;
+      }
+
       if (container && container.scrollHeight > container.clientHeight + 1) {
         const containerRect = container.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
