@@ -3058,7 +3058,7 @@ export default function App() {
                   <p className="text-[11px] uppercase tracking-[0.24em]">About</p>
                   <div className="space-y-5 sm:space-y-6">
                     <h1 className="workhorse-serif text-3xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
-                    <figure className="mx-auto w-full max-w-[22rem] overflow-hidden bg-white sm:mx-0 sm:max-w-[26rem]">
+                    <figure className="mx-auto w-full max-w-[22rem] overflow-hidden bg-white sm:max-w-[26rem]">
                       <img
                         src={aboutImageSrc}
                         alt="Jonathan Jaffrey in front of his artwork"
