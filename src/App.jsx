@@ -22,7 +22,7 @@ const aboutImageSrc = "/about-jonjaff.webp";
 const fontStyles = `
   .workhorse-sans,
   .workhorse-serif {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: "Courier New", Courier, monospace;
     font-weight: 300;
     line-height: 1.15;
   }
@@ -33,7 +33,7 @@ const stripeCardElementOptions = {
   style: {
     base: {
       color: "#000000",
-      fontFamily: "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+      fontFamily: "\"Courier New\", Courier, monospace",
       fontSize: "14px",
       fontWeight: "300",
       "::placeholder": {
