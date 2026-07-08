@@ -1681,19 +1681,30 @@ export default function App() {
   useEffect(() => {
     const container = shopViewportRef.current;
 
-    if (currentView !== "product" || !container) {
+    if (currentView !== "product") {
       setIsProductMenuHidden(false);
       return undefined;
     }
 
+    const getProductScrollTop = () =>
+      Math.max(
+        container?.scrollTop ?? 0,
+        window.scrollY ?? 0,
+        document.documentElement?.scrollTop ?? 0
+      );
+
     const handleProductScroll = () => {
-      setIsProductMenuHidden(container.scrollTop > 54);
+      setIsProductMenuHidden(getProductScrollTop() > 40);
     };
 
     handleProductScroll();
-    container.addEventListener("scroll", handleProductScroll, { passive: true });
+    container?.addEventListener("scroll", handleProductScroll, { passive: true });
+    window.addEventListener("scroll", handleProductScroll, { passive: true });
 
-    return () => container.removeEventListener("scroll", handleProductScroll);
+    return () => {
+      container?.removeEventListener("scroll", handleProductScroll);
+      window.removeEventListener("scroll", handleProductScroll);
+    };
   }, [currentView, selectedProduct?.id]);
 
   useEffect(() => {
