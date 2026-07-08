@@ -2645,7 +2645,7 @@ export default function App() {
             ) : null}
           </div>
 
-          <nav className="workhorse-serif grid w-full max-w-[10rem] grid-cols-2 gap-x-1 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[11rem] sm:gap-x-2">
+          <nav className="workhorse-serif grid w-full max-w-[9.5rem] grid-cols-2 gap-x-0.5 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1">
             {navItems.map((item) => (
               <button
                 key={item.label}
