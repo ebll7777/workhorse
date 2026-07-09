@@ -2873,7 +2873,7 @@ export default function App() {
             style={{
               pointerEvents: currentView === "product" && isProductMenuHidden ? "none" : "auto",
             }}
-            className="workhorse-serif relative z-0 grid w-full max-w-[9.5rem] grid-cols-2 gap-x-0.5 gap-y-0.5 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1"
+            className="workhorse-serif relative z-0 grid w-full max-w-[13rem] grid-cols-2 gap-x-5 gap-y-1 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1 sm:gap-y-0.5"
           >
             {navItems.map((item) => (
               item.label === "Shop" ? (
