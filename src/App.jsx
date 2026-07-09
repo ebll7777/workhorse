@@ -1629,6 +1629,7 @@ export default function App() {
   const [isShopTreeOpen, setIsShopTreeOpen] = useState(false);
   const [pendingShopSection, setPendingShopSection] = useState(null);
   const [isProductMenuHidden, setIsProductMenuHidden] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [checkoutEmail, setCheckoutEmail] = useState("");
   const [checkoutDetails, setCheckoutDetails] = useState({
     email: "",
@@ -1706,6 +1707,29 @@ export default function App() {
       window.removeEventListener("scroll", handleProductScroll);
     };
   }, [currentView, selectedProduct?.id]);
+
+  useEffect(() => {
+    const container = shopViewportRef.current;
+    const getScrollTop = () =>
+      Math.max(
+        container?.scrollTop ?? 0,
+        window.scrollY ?? 0,
+        document.documentElement?.scrollTop ?? 0
+      );
+
+    const handleScroll = () => {
+      setIsHeaderHidden(getScrollTop() > 56);
+    };
+
+    handleScroll();
+    container?.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [currentView]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -2715,14 +2739,19 @@ export default function App() {
   return (
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
       <style>{fontStyles}</style>
-      <header className="fixed left-0 right-0 top-0 z-[60] bg-white">
-        <div className="relative z-20 flex justify-center bg-white px-3 pb-0 pt-2 sm:px-5 sm:pb-1 sm:pt-3">
+      <motion.header
+        animate={isHeaderHidden ? { y: "-100%", opacity: 0 } : { y: 0, opacity: 1 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed left-0 right-0 top-0 z-[60] bg-white"
+        style={{ pointerEvents: isHeaderHidden ? "none" : "auto" }}
+      >
+        <div className="relative z-20 flex justify-center bg-white px-3 pb-0 pt-1 sm:px-5 sm:pt-2">
           <button
             onClick={handleHomeClick}
             aria-label="Go to top"
             className="flex items-center justify-center"
           >
-            <div className="flex h-14 w-48 items-center justify-center overflow-hidden bg-white sm:h-24 sm:w-[28rem]">
+            <div className="flex h-12 w-44 items-center justify-center overflow-hidden bg-white sm:h-20 sm:w-[24rem]">
               <img src={logoImageSrc} alt="Workhorse home" className="h-full w-full object-contain" />
             </div>
           </button>
@@ -2763,7 +2792,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center px-3 py-2 sm:px-5 sm:py-3">
+        <div className="relative flex items-center justify-center px-3 py-1 sm:px-5 sm:py-1.5">
           <div className="absolute left-3 flex items-center gap-3 sm:left-5">
             {currentView === "shop" ? (
               <motion.div
@@ -2993,13 +3022,13 @@ export default function App() {
             </AnimatePresence>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       <main
         ref={shopViewportRef}
         className={
           currentView === "shop"
-            ? "relative z-0 flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-pt-[136px] pb-24 pt-[136px] sm:scroll-pt-[148px] sm:pt-[148px]"
+            ? "relative z-0 flex-1 overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-pt-[112px] pb-24 pt-[112px] sm:scroll-pt-[124px] sm:pt-[124px]"
             : "relative z-0 flex-1 overflow-y-auto overflow-x-hidden pb-24 pt-[92px] sm:pt-[97px]"
         }
       >
@@ -3092,7 +3121,7 @@ export default function App() {
                         }}
                         key={`${activeFilter}-${index}`}
                         style={rowRenderStyle}
-                        className={`${rowPaddingClass} ${index === 0 ? "pt-8 sm:pt-10" : ""}`}
+                        className={rowPaddingClass}
                       >
                         <div className={`grid h-full auto-rows-fr ${gridColumnsClass} ${gridGapClass}`}>
                           {group.map((product) => (
