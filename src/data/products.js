@@ -175,7 +175,7 @@ export const products = [
     category: "Furniture",
     price: 580,
     image: productAsset("Furniture", "dance.gif"),
-    thumbnail: productAsset("Furniture", "dance-thumb.webp"),
+    thumbnail: productAsset("Furniture", "thumbs/Dresser Front.webp"),
     media: [
       {
         src: productAsset("Furniture", "dance.gif"),
