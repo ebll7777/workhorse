@@ -2892,7 +2892,7 @@ export default function App() {
               pointerEvents: currentView === "product" && isProductMenuHidden ? "none" : "auto",
             }}
             onMouseLeave={() => setIsShopTreeOpen(false)}
-            className="workhorse-serif relative z-0 flex w-full max-w-[19rem] flex-col items-center gap-0.5 text-[15px] tracking-[0.01em] sm:max-w-[16rem] sm:text-base"
+            className="workhorse-serif relative z-0 flex w-full max-w-[21rem] flex-col items-center gap-0.5 text-[15px] tracking-[0.01em] sm:max-w-[19rem] sm:text-base"
           >
             <div className="grid w-full grid-cols-3 items-center gap-x-3 sm:gap-x-2">
               <button
@@ -2934,50 +2934,61 @@ export default function App() {
 
             <motion.div
               layout
-              className="flex w-full items-center justify-center gap-2 overflow-visible"
+              className={
+                isShopTreeOpen
+                  ? "grid w-full grid-cols-4 items-center gap-x-4 overflow-visible sm:gap-x-5"
+                  : "grid w-[13.5rem] grid-cols-2 items-center gap-x-12 overflow-visible sm:w-[12.5rem] sm:gap-x-10"
+              }
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.button
                 layout
                 type="button"
                 onClick={() => handleFilterClick("Furniture")}
-                className="leading-tight transition hover:opacity-50"
+                className="justify-self-center leading-tight transition hover:opacity-50"
               >
                 Furniture
               </motion.button>
 
               <AnimatePresence initial={false}>
                 {isShopTreeOpen ? (
-                  <motion.div
-                    key="shop-inline-options"
+                  <motion.button
+                    key="shop-inline-stickers"
                     layout
-                    initial={{ width: 0, opacity: 0, scaleX: 0.75 }}
-                    animate={{ width: "auto", opacity: 1, scaleX: 1 }}
-                    exit={{ width: 0, opacity: 0, scaleX: 0.75 }}
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.85, x: -8 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, x: -8 }}
                     transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex origin-center items-center gap-2 overflow-hidden whitespace-nowrap"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShopSectionClick("stickers");
+                    }}
+                    className="justify-self-center leading-tight transition hover:opacity-50"
                   >
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleShopSectionClick("stickers");
-                      }}
-                      className="leading-tight transition hover:opacity-50"
-                    >
-                      Stickers
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleShopSectionClick("prints");
-                      }}
-                      className="leading-tight transition hover:opacity-50"
-                    >
-                      Prints
-                    </button>
-                  </motion.div>
+                    Stickers
+                  </motion.button>
+                ) : null}
+              </AnimatePresence>
+
+              <AnimatePresence initial={false}>
+                {isShopTreeOpen ? (
+                  <motion.button
+                    key="shop-inline-prints"
+                    layout
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.85, x: 8 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, x: 8 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShopSectionClick("prints");
+                    }}
+                    className="justify-self-center leading-tight transition hover:opacity-50"
+                  >
+                    Prints
+                  </motion.button>
                 ) : null}
               </AnimatePresence>
 
@@ -2985,7 +2996,7 @@ export default function App() {
                 layout
                 type="button"
                 onClick={openNews}
-                className="leading-tight transition hover:opacity-50"
+                className="justify-self-center leading-tight transition hover:opacity-50"
               >
                 News
               </motion.button>
