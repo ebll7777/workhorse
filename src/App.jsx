@@ -2936,7 +2936,7 @@ export default function App() {
               layout
               className={
                 isShopTreeOpen
-                  ? "grid w-full grid-cols-4 items-center gap-x-4 overflow-visible sm:gap-x-5"
+                  ? "flex w-full items-center justify-center gap-x-5 overflow-visible sm:gap-x-6"
                   : "grid w-[13.5rem] grid-cols-2 items-center gap-x-12 overflow-visible sm:w-[12.5rem] sm:gap-x-10"
               }
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
