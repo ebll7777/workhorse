@@ -2134,6 +2134,7 @@ export default function App() {
   }, [currentView, stripePublishableKey]);
 
   const handleFilterClick = (filter) => {
+    setIsShopTreeOpen(false);
     setActiveFilter(filter);
     setSelectedProduct(null);
     setCurrentView("shop");
@@ -2154,6 +2155,7 @@ export default function App() {
   };
 
   const openAbout = () => {
+    setIsShopTreeOpen(false);
     setSelectedProduct(null);
     setCurrentView("about");
     window.scrollTo({ top: 0 });
@@ -2890,7 +2892,19 @@ export default function App() {
                   }}
                 >
                   <button
-                    onClick={item.action}
+                    onClick={(event) => {
+                      if (
+                        typeof window !== "undefined" &&
+                        window.matchMedia("(max-width: 639px)").matches
+                      ) {
+                        event.preventDefault();
+                        setIsShopTreeOpen((isOpen) => !isOpen);
+                        return;
+                      }
+
+                      item.action();
+                    }}
+                    aria-expanded={isShopTreeOpen}
                     className="transition hover:opacity-50"
                   >
                     {item.label}
@@ -2898,11 +2912,11 @@ export default function App() {
                   <AnimatePresence>
                     {isShopTreeOpen ? (
                       <motion.div
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -5 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute left-[calc(100%+0.05rem)] top-[-0.85rem] z-50 h-[4.2rem] w-[9.8rem] text-base leading-none tracking-[0.01em]"
+                        className="absolute left-1/2 top-[calc(100%+0.35rem)] z-50 h-[4.6rem] w-[10.5rem] -translate-x-[42%] text-base leading-none tracking-[0.01em] sm:left-[calc(100%+0.05rem)] sm:top-[-0.85rem] sm:h-[4.2rem] sm:w-[9.8rem] sm:translate-x-0"
                       >
                         <svg
                           aria-hidden="true"
