@@ -2937,12 +2937,12 @@ export default function App() {
               className={
                 isShopTreeOpen
                   ? "flex w-full items-center justify-center gap-x-5 overflow-visible sm:gap-x-6"
-                  : "grid w-[13.5rem] grid-cols-2 items-center gap-x-12 overflow-visible sm:w-[12.5rem] sm:gap-x-10"
+                  : "flex w-[13.5rem] items-center justify-between overflow-visible sm:w-[12.5rem]"
               }
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.button
-                layout
+                layout="position"
                 type="button"
                 onClick={() => handleFilterClick("Furniture")}
                 className="justify-self-center leading-tight transition hover:opacity-50"
@@ -2954,12 +2954,11 @@ export default function App() {
                 {isShopTreeOpen ? (
                   <motion.button
                     key="shop-inline-stickers"
-                    layout
                     type="button"
-                    initial={{ opacity: 0, scale: 0.85, x: -8 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.85, x: -8 }}
-                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    initial={{ opacity: 0, y: 2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 2 }}
+                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                     onClick={(event) => {
                       event.stopPropagation();
                       handleShopSectionClick("stickers");
@@ -2975,12 +2974,11 @@ export default function App() {
                 {isShopTreeOpen ? (
                   <motion.button
                     key="shop-inline-prints"
-                    layout
                     type="button"
-                    initial={{ opacity: 0, scale: 0.85, x: 8 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.85, x: 8 }}
-                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    initial={{ opacity: 0, y: 2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 2 }}
+                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                     onClick={(event) => {
                       event.stopPropagation();
                       handleShopSectionClick("prints");
@@ -2993,7 +2991,7 @@ export default function App() {
               </AnimatePresence>
 
               <motion.button
-                layout
+                layout="position"
                 type="button"
                 onClick={openNews}
                 className="justify-self-center leading-tight transition hover:opacity-50"
