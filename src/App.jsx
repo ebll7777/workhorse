@@ -1613,6 +1613,20 @@ function SiteInfoPage({ page }) {
   );
 }
 
+function NewsPage() {
+  return (
+    <section className="min-h-[calc(100svh-92px)] bg-white sm:min-h-[calc(100vh-97px)]">
+      <div className="mx-auto flex min-h-[calc(100svh-92px)] max-w-3xl flex-col items-center justify-center px-5 py-12 text-center sm:min-h-[calc(100vh-97px)] sm:px-8">
+        <p className="mb-5 text-[11px] uppercase tracking-[0.24em] text-black/60">News</p>
+        <h1 className="workhorse-serif text-4xl tracking-[0.08em] sm:text-6xl">News</h1>
+        <p className="mt-8 max-w-xl text-sm leading-7 text-black/70">
+          Updates, releases, and announcements will live here soon.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   useEffect(() => {
     document.title = "Jonathan Jaffrey";
@@ -2158,6 +2172,13 @@ export default function App() {
     setIsShopTreeOpen(false);
     setSelectedProduct(null);
     setCurrentView("about");
+    window.scrollTo({ top: 0 });
+  };
+
+  const openNews = () => {
+    setIsShopTreeOpen(false);
+    setSelectedProduct(null);
+    setCurrentView("news");
     window.scrollTo({ top: 0 });
   };
 
@@ -2714,18 +2735,13 @@ export default function App() {
     setPendingRowIndex(nextRowIndex);
   };
 
-  const navItems = [
-    { label: "Artwork", action: () => handleFilterClick("Artwork") },
-    { label: "Shop", action: () => handleFilterClick("Shop") },
-    { label: "Furniture", action: () => handleFilterClick("Furniture") },
-    { label: "About", action: openAbout },
-  ];
-
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const viewKey =
     currentView === "about"
       ? "about"
+      : currentView === "news"
+        ? "news"
       : currentView === "info"
         ? `info-${siteInfoPageKey}`
       : currentView === "cart"
@@ -2875,129 +2891,105 @@ export default function App() {
             style={{
               pointerEvents: currentView === "product" && isProductMenuHidden ? "none" : "auto",
             }}
-            className="workhorse-serif relative z-0 grid w-full max-w-[13rem] grid-cols-2 gap-x-5 gap-y-1 text-base tracking-[0.01em] sm:max-w-[10rem] sm:gap-x-1 sm:gap-y-0.5"
+            onMouseLeave={() => setIsShopTreeOpen(false)}
+            className="workhorse-serif relative z-0 flex w-full max-w-[19rem] flex-col items-center gap-0.5 text-[15px] tracking-[0.01em] sm:max-w-[16rem] sm:text-base"
           >
-            {navItems.map((item) => (
-              item.label === "Shop" ? (
-                <div
-                  key={item.label}
-                  className="relative text-center leading-tight"
-                  onMouseEnter={() => setIsShopTreeOpen(true)}
-                  onMouseLeave={() => setIsShopTreeOpen(false)}
-                  onFocus={() => setIsShopTreeOpen(true)}
-                  onBlur={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget)) {
-                      setIsShopTreeOpen(false);
-                    }
-                  }}
-                >
-                  <button
-                    onClick={(event) => {
-                      if (
-                        typeof window !== "undefined" &&
-                        window.matchMedia("(max-width: 639px)").matches
-                      ) {
-                        event.preventDefault();
-                        setIsShopTreeOpen((isOpen) => !isOpen);
-                        return;
-                      }
+            <div className="grid w-full grid-cols-3 items-center gap-x-3 sm:gap-x-2">
+              <button
+                type="button"
+                onClick={() => handleFilterClick("Artwork")}
+                className="text-center leading-tight transition hover:opacity-50"
+              >
+                Artwork
+              </button>
+              <button
+                type="button"
+                onMouseEnter={() => setIsShopTreeOpen(true)}
+                onFocus={() => setIsShopTreeOpen(true)}
+                onClick={(event) => {
+                  if (
+                    typeof window !== "undefined" &&
+                    window.matchMedia("(max-width: 639px)").matches
+                  ) {
+                    event.preventDefault();
+                    setIsShopTreeOpen((isOpen) => !isOpen);
+                    return;
+                  }
 
-                      item.action();
-                    }}
-                    aria-expanded={isShopTreeOpen}
-                    className="transition hover:opacity-50"
+                  handleFilterClick("Shop");
+                }}
+                aria-expanded={isShopTreeOpen}
+                className="text-center leading-tight transition hover:opacity-50"
+              >
+                Shop
+              </button>
+              <button
+                type="button"
+                onClick={openAbout}
+                className="text-center leading-tight transition hover:opacity-50"
+              >
+                About
+              </button>
+            </div>
+
+            <motion.div
+              layout
+              className="flex w-full items-center justify-center gap-2 overflow-visible"
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <motion.button
+                layout
+                type="button"
+                onClick={() => handleFilterClick("Furniture")}
+                className="leading-tight transition hover:opacity-50"
+              >
+                Furniture
+              </motion.button>
+
+              <AnimatePresence initial={false}>
+                {isShopTreeOpen ? (
+                  <motion.div
+                    key="shop-inline-options"
+                    layout
+                    initial={{ width: 0, opacity: 0, scaleX: 0.75 }}
+                    animate={{ width: "auto", opacity: 1, scaleX: 1 }}
+                    exit={{ width: 0, opacity: 0, scaleX: 0.75 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex origin-center items-center gap-2 overflow-hidden whitespace-nowrap"
                   >
-                    {item.label}
-                  </button>
-                  <AnimatePresence>
-                    {isShopTreeOpen ? (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute left-1/2 top-[calc(100%+0.35rem)] z-50 h-[4.6rem] w-[10.5rem] -translate-x-[42%] text-base leading-none tracking-[0.01em] sm:left-[calc(100%+0.05rem)] sm:top-[-0.85rem] sm:h-[4.2rem] sm:w-[9.8rem] sm:translate-x-0"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 156 68"
-                          className="absolute inset-0 h-full w-full overflow-visible"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="square"
-                          strokeWidth="1.15"
-                        >
-                          <motion.path
-                            d="M0 34H34"
-                            initial={{ pathLength: 0, opacity: 0 }}
-                            animate={{ pathLength: 1, opacity: 0.75 }}
-                            exit={{ pathLength: 0, opacity: 0 }}
-                            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                          />
-                          <motion.path
-                            d="M34 20V48"
-                            initial={{ pathLength: 0, opacity: 0 }}
-                            animate={{ pathLength: 1, opacity: 0.75 }}
-                            exit={{ pathLength: 0, opacity: 0 }}
-                            transition={{ duration: 0.16, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-                          />
-                          {["M34 20H82", "M34 48H82"].map((path, index) => (
-                            <motion.path
-                              key={path}
-                              d={path}
-                              initial={{ pathLength: 0, opacity: 0 }}
-                              animate={{ pathLength: 1, opacity: 0.75 }}
-                              exit={{ pathLength: 0, opacity: 0 }}
-                              transition={{
-                                duration: 0.18,
-                                delay: 0.14 + index * 0.045,
-                                ease: [0.22, 1, 0.36, 1],
-                              }}
-                            />
-                          ))}
-                        </svg>
-                        <motion.button
-                          type="button"
-                          initial={{ opacity: 0, x: -3 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -3 }}
-                          transition={{ duration: 0.14, delay: 0.2 }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleShopSectionClick("prints");
-                          }}
-                          className="absolute left-[5.45rem] top-[0.85rem] bg-white px-1 text-left transition hover:opacity-50"
-                        >
-                          Prints
-                        </motion.button>
-                        <motion.button
-                          type="button"
-                          initial={{ opacity: 0, x: -3 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -3 }}
-                          transition={{ duration: 0.14, delay: 0.24 }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleShopSectionClick("stickers");
-                          }}
-                          className="absolute left-[5.45rem] top-[2.6rem] bg-white px-1 text-left transition hover:opacity-50"
-                        >
-                          Stickers
-                        </motion.button>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <button
-                  key={item.label}
-                  onClick={item.action}
-                  className="text-center leading-tight transition hover:opacity-50"
-                >
-                  {item.label}
-                </button>
-              )
-            ))}
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleShopSectionClick("stickers");
+                      }}
+                      className="leading-tight transition hover:opacity-50"
+                    >
+                      Stickers
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleShopSectionClick("prints");
+                      }}
+                      className="leading-tight transition hover:opacity-50"
+                    >
+                      Prints
+                    </button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <motion.button
+                layout
+                type="button"
+                onClick={openNews}
+                className="leading-tight transition hover:opacity-50"
+              >
+                News
+              </motion.button>
+            </motion.div>
           </motion.nav>
 
           <div className="absolute right-3 hidden items-center gap-3 sm:right-5 sm:flex">
@@ -3195,6 +3187,10 @@ export default function App() {
           ) : currentView === "info" ? (
             <motion.div key={viewKey} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
               <SiteInfoPage page={siteInfoPages[siteInfoPageKey]} />
+            </motion.div>
+          ) : currentView === "news" ? (
+            <motion.div key={viewKey} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
+              <NewsPage />
             </motion.div>
           ) : (
             <motion.section
