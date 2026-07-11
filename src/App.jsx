@@ -2932,73 +2932,57 @@ export default function App() {
               </button>
             </div>
 
-            <motion.div
-              layout
-              className={
-                isShopTreeOpen
-                  ? "flex w-full items-center justify-center gap-x-5 overflow-visible sm:gap-x-6"
-                  : "flex w-[13.5rem] items-center justify-between overflow-visible sm:w-[12.5rem]"
-              }
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <motion.button
-                layout="position"
+            <div className="flex w-full items-center justify-center gap-x-5 overflow-visible">
+              <button
                 type="button"
                 onClick={() => handleFilterClick("Furniture")}
-                className="justify-self-center leading-tight transition hover:opacity-50"
+                className="shrink-0 leading-tight transition hover:opacity-50"
               >
                 Furniture
-              </motion.button>
+              </button>
 
-              <AnimatePresence initial={false}>
-                {isShopTreeOpen ? (
-                  <motion.button
-                    key="shop-inline-stickers"
+              <div
+                aria-hidden={!isShopTreeOpen}
+                className={`shrink-0 overflow-hidden transition-[max-width,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  isShopTreeOpen
+                    ? "max-w-[9.2rem] opacity-100 sm:max-w-[9.7rem]"
+                    : "pointer-events-none max-w-0 opacity-0"
+                }`}
+              >
+                <div className="flex w-[9.2rem] items-center justify-between sm:w-[9.7rem]">
+                  <button
                     type="button"
-                    initial={{ opacity: 0, y: 2 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 2 }}
-                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                    tabIndex={isShopTreeOpen ? 0 : -1}
                     onClick={(event) => {
                       event.stopPropagation();
                       handleShopSectionClick("stickers");
                     }}
-                    className="justify-self-center leading-tight transition hover:opacity-50"
+                    className="shrink-0 leading-tight transition hover:opacity-50"
                   >
                     Stickers
-                  </motion.button>
-                ) : null}
-              </AnimatePresence>
-
-              <AnimatePresence initial={false}>
-                {isShopTreeOpen ? (
-                  <motion.button
-                    key="shop-inline-prints"
+                  </button>
+                  <button
                     type="button"
-                    initial={{ opacity: 0, y: 2 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 2 }}
-                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                    tabIndex={isShopTreeOpen ? 0 : -1}
                     onClick={(event) => {
                       event.stopPropagation();
                       handleShopSectionClick("prints");
                     }}
-                    className="justify-self-center leading-tight transition hover:opacity-50"
+                    className="shrink-0 leading-tight transition hover:opacity-50"
                   >
                     Prints
-                  </motion.button>
-                ) : null}
-              </AnimatePresence>
+                  </button>
+                </div>
+              </div>
 
-              <motion.button
-                layout="position"
+              <button
                 type="button"
                 onClick={openNews}
-                className="justify-self-center leading-tight transition hover:opacity-50"
+                className="shrink-0 leading-tight transition hover:opacity-50"
               >
                 News
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           </motion.nav>
 
           <div className="absolute right-3 hidden items-center gap-3 sm:right-5 sm:flex">
