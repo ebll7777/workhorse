@@ -25,6 +25,7 @@ const orderReplyToEmail = process.env.ORDER_REPLY_TO_EMAIL || orderNotifyEmail;
 const adminExportToken = process.env.ADMIN_EXPORT_TOKEN || "";
 const paypalClientId = process.env.PAYPAL_CLIENT_ID;
 const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
+const paypalEnabled = process.env.PAYPAL_ENABLED === "true";
 const paypalEnvironment = (process.env.PAYPAL_ENVIRONMENT || "sandbox").toLowerCase();
 const paypalApiBaseUrl =
   paypalEnvironment === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
@@ -72,7 +73,7 @@ if (!stripeSecretKey) {
   console.warn("Missing STRIPE_SECRET_KEY. Stripe checkout endpoints will return an error until it is set.");
 }
 
-if (!paypalClientId || !paypalClientSecret) {
+if (paypalEnabled && (!paypalClientId || !paypalClientSecret)) {
   console.warn("Missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET. PayPal checkout endpoints will return an error until they are set.");
 }
 
@@ -1371,6 +1372,10 @@ app.post("/api/create-checkout-session", async (req, res) => {
     }
 
     if (paymentMethod === "paypal") {
+      if (!paypalEnabled) {
+        return res.status(503).json({ error: "PayPal payments are temporarily unavailable." });
+      }
+
       const order = createPendingOrder({
         store,
         cartEntries,
@@ -1414,6 +1419,10 @@ app.post("/api/create-checkout-session", async (req, res) => {
 });
 
 app.get("/api/paypal/return", async (req, res) => {
+  if (!paypalEnabled) {
+    return res.status(503).send("PayPal payments are temporarily unavailable.");
+  }
+
   const origin =
     typeof req.query.origin === "string" && req.query.origin
       ? req.query.origin

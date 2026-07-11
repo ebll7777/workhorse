@@ -168,7 +168,7 @@ const siteInfoPages = {
       },
       {
         heading: "Payment",
-        body: "Card payments are processed by Stripe. PayPal may be offered when configured for live payments.",
+        body: "Card payments are processed securely by Stripe.",
       },
     ],
   },
@@ -1314,7 +1314,7 @@ function CheckoutPage({
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
         <div className="grid grid-cols-1 gap-9 lg:grid-cols-[1fr_0.9fr] lg:gap-16">
           <div className="pt-2 sm:pt-5">
-            <div className="mb-6 grid w-full max-w-xl grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:mb-8">
+            <div className="mb-6 grid w-full max-w-xl grid-cols-1 gap-3 sm:mb-8">
               <button
                 type="button"
                 onClick={() => onPaymentMethodChange("stripe")}
@@ -1323,15 +1323,6 @@ function CheckoutPage({
                 }`}
               >
                 Stripe
-              </button>
-              <button
-                type="button"
-                onClick={() => onPaymentMethodChange("paypal")}
-                className={`border px-3 py-3 text-[11px] uppercase tracking-[0.18em] transition sm:px-4 sm:py-4 sm:tracking-[0.2em] ${
-                  paymentMethod === "paypal" ? "border-black bg-black text-white" : "border-black bg-white text-black hover:opacity-70"
-                }`}
-              >
-                PayPal
               </button>
             </div>
 
