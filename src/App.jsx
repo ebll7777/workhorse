@@ -3199,7 +3199,6 @@ export default function App() {
               <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
                 <div className="space-y-8 sm:space-y-10">
                   <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
-                    <p className="text-center text-[11px] uppercase tracking-[0.24em]">About</p>
                     <h1 className="workhorse-serif text-center text-3xl tracking-[0.08em] sm:text-5xl">Jonathan Jaffrey</h1>
                     <figure className="mx-auto w-full max-w-[22rem] overflow-hidden bg-white sm:max-w-[26rem]">
                       <img
