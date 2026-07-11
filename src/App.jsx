@@ -2752,7 +2752,7 @@ export default function App() {
               ? "success"
               : currentView === "product" && selectedProduct
                 ? `product-${selectedProduct.id}`
-                : `shop-${activeFilter}`;
+                : `shop-${activeFilter}-zoom-${zoomLevel}`;
 
   return (
     <div className="workhorse-sans flex min-h-screen flex-col bg-white text-black antialiased">
