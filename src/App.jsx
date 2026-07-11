@@ -2864,7 +2864,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={closeProductPage}
-                className="flex h-9 w-9 items-center justify-center transition hover:opacity-50 sm:h-10 sm:w-10"
+                className="hidden h-10 w-10 items-center justify-center transition hover:opacity-50 sm:flex"
                 aria-label="Back to home"
               >
                 <span aria-hidden="true" className="block h-3 w-3 rounded-full border-2 border-black"></span>
