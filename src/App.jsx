@@ -647,11 +647,50 @@ function sortItemsAlphabetically(items) {
   );
 }
 
+const featuredHomeTitles = [
+  "Destiny",
+  "Happy Birthday",
+  "Dance",
+  "The Berliner",
+  "The Geisha",
+  "The Tourist",
+  "Choo Choo",
+  "F-Word",
+  "Venice Beach",
+  "Drag",
+  "Mach 1",
+  "Kwain The Unthinkable",
+  "Bat",
+  "February First",
+  "Saphira And The Tiger",
+];
+
+const featuredHomeTitleRanks = new Map(
+  featuredHomeTitles.map((title, index) => [title, index]),
+);
+
 function sortHomeGridItems(items) {
   const visibleItems = items.filter((item) => !item.hideFromHome);
-  const paintings = visibleItems.filter((item) => item.category === "Paintings");
-  const rest = visibleItems.filter((item) => item.category !== "Paintings");
-  return [...sortItemsAlphabetically(paintings), ...sortItemsAlphabetically(rest)];
+  return [...visibleItems].sort((leftItem, rightItem) => {
+    const leftRank = featuredHomeTitleRanks.get(leftItem.title);
+    const rightRank = featuredHomeTitleRanks.get(rightItem.title);
+    const leftIsFeatured = leftRank !== undefined;
+    const rightIsFeatured = rightRank !== undefined;
+
+    if (leftIsFeatured && rightIsFeatured) return leftRank - rightRank;
+    if (leftIsFeatured) return -1;
+    if (rightIsFeatured) return 1;
+
+    const leftIsSticker = leftItem.category === "Stickers";
+    const rightIsSticker = rightItem.category === "Stickers";
+
+    if (leftIsSticker && !rightIsSticker) return -1;
+    if (!leftIsSticker && rightIsSticker) return 1;
+
+    return leftItem.title.localeCompare(rightItem.title, undefined, {
+      sensitivity: "base",
+    });
+  });
 }
 
 const minArtworkZoom = 1;
@@ -3199,6 +3238,9 @@ export default function App() {
                         decoding="async"
                         className="h-auto w-full object-cover"
                       />
+                      <figcaption className="pt-2 text-center text-[10px] tracking-[0.08em] text-black/40 sm:text-xs">
+                        Jonathan Jaffrey pictured for Nike x Title magazine
+                      </figcaption>
                     </figure>
                   </div>
 
